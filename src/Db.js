@@ -12588,8 +12588,8 @@ for (let i = 0; i < nBeams; i++) {
   beamsArr[i]["type"] = beamTypes[i];
   beamsArr[i]["weight"] = beamWeights[i];
   beamsArr[i]["area"] = beamAreas[i];
-  beamsArr[i]["Ix"] = beamsMOIx[i];
-  beamsArr[i]["Iy"] = beamsMOIy[i];
+  beamsArr[i]["ix"] = beamsMOIx[i];
+  beamsArr[i]["iy"] = beamsMOIy[i];
 }
 
 export const getBeamTypes = () => getInfo(beamTypesTxt);

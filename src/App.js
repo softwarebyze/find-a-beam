@@ -20,6 +20,7 @@ export default function App() {
         <SelectionFilter attribute="Type" dropdownItemsArray={getBeamTypes()} />
         <InequalityFilter attribute="Weight" unit="lb/ft" />
         <InequalityFilter attribute="Area" unit="in^2" />
+        <InequalityFilter attribute="Ix" unit="in^4" />
         <SelectionFilter
           attribute="Name"
           dropdownItemsArray={getFilteredBeamNames()}

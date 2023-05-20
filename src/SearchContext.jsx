@@ -13,8 +13,10 @@ export function SearchProvider({ children }) {
     "type-filter": "Any",
     "weight-value": "",
     "area-value": "",
+    "ix-value": "",
     "weight-operator": "<",
-    "area-operator": ">"
+    "area-operator": ">",
+    "ix-operator": ">",
   };
   const [search, setSearch] = useState(defaultSearch);
   const [validBeamsArr, setValidBeamsArr] = useState(beamsArr);
@@ -39,7 +41,7 @@ export function SearchProvider({ children }) {
   };
 
   const filterByInequality = (arr, attribute, search) => {
-    const operator = search[`${attribute}-operator`];
+    const operator = search[`${attribute.toLowerCase()}-operator`];
     switch (operator) {
       case ">":
         return arr.filter(
@@ -78,7 +80,10 @@ export function SearchProvider({ children }) {
     if (search["area-value"] !== "") {
       filteredBeamsArr = filterByInequality(filteredBeamsArr, "area", search);
     }
-
+    //filter by moment of inertia about x-axis
+    if (search["ix-value"] !== "") {
+      filteredBeamsArr = filterByInequality(filteredBeamsArr, "Ix", search);
+    }
     //filter by name
     if (search["name-filter"] !== "Any") {
       filteredBeamsArr = filterByMatch(filteredBeamsArr, "name", search);
