@@ -32,7 +32,7 @@ export default function App() {
           <li key={i}>{JSON.stringify(beam)}</li>
         ))}
       </ol>
-      <p>Contact Zack Ebenfeld at zackebenfeld@gmail.com.</p>
+      <p>Contact Zack Ebenfeld at <a href="mailto:zackebenfeld@gmail.com">zackebenfeld@gmail.com</a>.</p>
     </div>
   );
 }
