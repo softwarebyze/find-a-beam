@@ -14,9 +14,11 @@ export function SearchProvider({ children }) {
     "weight-value": "",
     "area-value": "",
     "ix-value": "",
+    "iy-value": "",
     "weight-operator": "<",
     "area-operator": ">",
     "ix-operator": ">",
+    "iy-operator": ">",
   };
   const [search, setSearch] = useState(defaultSearch);
   const [validBeamsArr, setValidBeamsArr] = useState(beamsArr);
@@ -83,6 +85,10 @@ export function SearchProvider({ children }) {
     //filter by moment of inertia about x-axis
     if (search["ix-value"] !== "") {
       filteredBeamsArr = filterByInequality(filteredBeamsArr, "Ix", search);
+    }
+    //filter by moment of inertia about y-axis
+    if (search["iy-value"] !== "") {
+      filteredBeamsArr = filterByInequality(filteredBeamsArr, "Iy", search);
     }
     //filter by name
     if (search["name-filter"] !== "Any") {

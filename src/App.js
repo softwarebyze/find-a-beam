@@ -21,6 +21,7 @@ export default function App() {
         <InequalityFilter attribute="Weight" unit="lb/ft" />
         <InequalityFilter attribute="Area" unit="in^2" />
         <InequalityFilter attribute="Ix" unit="in^4" />
+        <InequalityFilter attribute="Iy" unit="in^4" />
         <SelectionFilter
           attribute="Name"
           dropdownItemsArray={getFilteredBeamNames()}
