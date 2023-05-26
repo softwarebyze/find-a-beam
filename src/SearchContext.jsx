@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useCallback } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { beamsArr } from "./Db";
 
 const SearchContext = React.createContext();
@@ -19,6 +19,8 @@ export function SearchProvider({ children }) {
     "area-operator": ">",
     "ix-operator": ">",
     "iy-operator": ">",
+    "depth-operator": ">",
+    "depth-value": "",
   };
   const [search, setSearch] = useState(defaultSearch);
   const [validBeamsArr, setValidBeamsArr] = useState(beamsArr);
@@ -43,6 +45,7 @@ export function SearchProvider({ children }) {
   };
 
   const filterByInequality = (arr, attribute, search) => {
+    console.log('filter ', arr, 'by', attribute, 'search', search)
     const operator = search[`${attribute.toLowerCase()}-operator`];
     switch (operator) {
       case ">":
@@ -93,6 +96,10 @@ export function SearchProvider({ children }) {
     //filter by name
     if (search["name-filter"] !== "Any") {
       filteredBeamsArr = filterByMatch(filteredBeamsArr, "name", search);
+    }
+    //filter by depth
+    if (search["depth-filter"] !== "") {
+      filteredBeamsArr = filterByInequality(filteredBeamsArr, "depth", search);
     }
     //setValidBeamsArr
     setValidBeamsArr(filteredBeamsArr);
