@@ -24,6 +24,7 @@ const InequalityFilter = ({ attribute, unit }) => {
         <option>{"="}</option>
       </select>
       <input
+        type="number"
         id={`${attribute.toLowerCase()}-value`}
         value={search[`${attribute.toLowerCase()}-value`]}
         onChange={handleChange}
