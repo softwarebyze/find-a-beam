@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
+
+  /* Semantic palette — use these (bg-surface, text-muted, border-line, text-accent …) instead of raw colors */
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-pass: var(--pass);
+  --color-pass-soft: var(--pass-soft);
+  --color-fail: var(--fail);
+  --color-fail-soft: var(--fail-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  /* Drawing colors */
+  --color-steel: var(--steel);
+  --color-steel-fill: var(--steel-fill);
+  --color-dim: var(--dim);
+}
+
+:root {
+  --canvas: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --line: #e3e6eb;
+  --line-strong: #cdd2da;
+  --ink: #0f172a;
+  --muted: #526075;
+  --faint: #8a95a8;
+  --accent: #1d6fd8;
+  --accent-soft: #e6f0fc;
+  --accent-ink: #ffffff;
+  --pass: #0f8a5f;
+  --pass-soft: #e3f5ed;
+  --fail: #c8322f;
+  --fail-soft: #fbe9e8;
+  --warn: #b26a00;
+  --warn-soft: #fdf1dc;
+  --steel: #334155;
+  --steel-fill: #cbd5e1;
+  --dim: #1d6fd8;
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #0b0f16;
+  --surface: #121821;
+  --surface-2: #19212c;
+  --line: #232d3a;
+  --line-strong: #314052;
+  --ink: #e6ebf2;
+  --muted: #9aa7b8;
+  --faint: #677589;
+  --accent: #5ea5ff;
+  --accent-soft: #14253d;
+  --accent-ink: #06101e;
+  --pass: #34c28a;
+  --pass-soft: #0f2a20;
+  --fail: #ff6b63;
+  --fail-soft: #33171a;
+  --warn: #f2a93b;
+  --warn-soft: #2e2210;
+  --steel: #cbd5e1;
+  --steel-fill: #3b4a5e;
+  --dim: #5ea5ff;
+  color-scheme: dark;
+}
+
+html { background: var(--canvas); color: var(--ink); }
+body { font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiased; }
+.num { font-variant-numeric: tabular-nums; }
+
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: white !important; }
+  :root, .dark { --canvas: #fff; --surface: #fff; --surface-2: #fff; --ink: #000; --muted: #333; --line: #bbb; }
+}
