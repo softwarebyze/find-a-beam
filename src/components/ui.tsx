@@ -6,8 +6,6 @@
 import clsx from "clsx";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { useSettings } from "@/app/settings";
-import { useCitationClick } from "@/lib/references/citation";
-import { parseRefs } from "@/lib/references/parse";
 import { fmt, fromDisplay, toDisplay, unitLabel, type Quantity } from "@/lib/units";
 import { Sym } from "./Sym";
 
@@ -292,33 +290,15 @@ export function Badge({
   );
 }
 
-/** Specification / Manual reference chip, e.g. <SpecRef>Eq. F2-2</SpecRef> or <SpecRef>Manual Table 3-23</SpecRef>.
- *  When a reference document is loaded, the chip opens a crop of the cited page region. */
+/** Specification / Manual citation label, e.g. <SpecRef>Eq. F2-2</SpecRef> or <SpecRef>Manual Table 3-23</SpecRef>. */
 export function SpecRef({ children, title }: { children: ReactNode; title?: string }) {
-  const open = useCitationClick();
-  const text = typeof children === "string" ? children : undefined;
-  const clickable = Boolean(open && text && parseRefs(text).targets.length > 0);
-  const className =
-    "inline-flex items-center rounded border border-line bg-surface-2 px-1 py-px font-mono text-[10.5px] leading-4 text-muted whitespace-nowrap";
-  if (!clickable || !text || !open) {
-    return (
-      <span title={title} className={className}>
-        {children}
-      </span>
-    );
-  }
   return (
-    <button
-      type="button"
-      title={title ?? `Preview ${text} from the reference PDF`}
-      onClick={(event) => open(text, event.currentTarget)}
-      className={clsx(
-        className,
-        "cursor-pointer transition hover:border-accent hover:bg-accent-soft hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30",
-      )}
+    <span
+      title={title}
+      className="inline-flex items-center rounded border border-line bg-surface-2 px-1 py-px font-mono text-[10.5px] leading-4 text-muted whitespace-nowrap"
     >
       {children}
-    </button>
+    </span>
   );
 }
 

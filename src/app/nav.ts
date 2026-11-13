@@ -157,12 +157,6 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Reference",
     items: [
       {
-        to: "/references",
-        label: "Manual references",
-        ref: "Your PDF",
-        description: "Load your Manual or Specification PDF to preview every cited equation, table and section.",
-      },
-      {
         to: "/compare",
         label: "Compare shapes",
         ref: "Part 1",
