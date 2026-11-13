@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { Segmented } from "@/components/ui";
+import { ReferenceProvider } from "@/lib/references/preview";
 import { NAV_GROUPS, type NavGroup } from "./nav";
 import { QuickFind } from "./QuickFind";
 import { useSettings, type Theme } from "./settings";
@@ -159,7 +160,8 @@ const NEXT_THEME: Record<Theme, Theme> = { system: "light", light: "dark", dark:
 export function Layout() {
   const { units, setUnits, method, setMethod, theme, setTheme } = useSettings();
   return (
-    <div className="min-h-dvh">
+    <ReferenceProvider>
+      <div className="min-h-dvh">
       <header className="no-print sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-4 px-4">
           <NavLink to="/" className="flex shrink-0 items-center gap-2">
@@ -233,6 +235,7 @@ export function Layout() {
           </a>
         </div>
       </footer>
-    </div>
+      </div>
+    </ReferenceProvider>
   );
 }

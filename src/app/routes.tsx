@@ -43,6 +43,7 @@ const VibrationPage = page(() => import("@/features/vibration/VibrationPage"), "
 const PondingPage = page(() => import("@/features/ponding/PondingPage"), "PondingPage");
 const FirePage = page(() => import("@/features/fire/FirePage"), "FirePage");
 const ReferencePage = page(() => import("@/features/reference/ReferencePage"), "ReferencePage");
+const ReferenceLibraryPage = page(() => import("@/features/references/ReferenceLibraryPage"), "ReferenceLibraryPage");
 
 export const router = createBrowserRouter([
   {
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
       { path: "ponding", element: <PondingPage /> },
       { path: "fire", element: <FirePage /> },
       { path: "reference", element: <ReferencePage /> },
+      { path: "references", element: <ReferenceLibraryPage /> },
       { path: "connections/bolts-welds", element: <BoltWeldGroupsPage /> },
       { path: "connections/shear", element: <ShearConnectionPage /> },
       { path: "connections/base-plate", element: <BasePlatePage /> },
