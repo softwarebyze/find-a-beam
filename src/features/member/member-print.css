@@ -1,0 +1,97 @@
+@media print {
+  @page {
+    size: letter;
+    margin: 0.6in;
+  }
+  .member-package {
+    font-size: 10pt;
+    line-height: 1.35;
+    --pass-soft: var(--surface);
+    --fail-soft: var(--surface);
+    --warn-soft: var(--surface);
+    --accent-soft: var(--surface);
+    --pass: var(--ink);
+    --fail: var(--ink);
+    --warn: var(--ink);
+    --accent: var(--ink);
+    --faint: var(--muted);
+    --line-strong: var(--line);
+    --accent-ink: var(--surface);
+    --steel: var(--ink);
+    --steel-fill: var(--surface-2);
+    --dim: var(--ink);
+    --color-pass-soft: var(--surface);
+    --color-fail-soft: var(--surface);
+    --color-warn-soft: var(--surface);
+    --color-accent-soft: var(--surface);
+    --color-pass: var(--ink);
+    --color-fail: var(--ink);
+    --color-warn: var(--ink);
+    --color-accent: var(--ink);
+  }
+  .member-package .member-layout {
+    display: block;
+  }
+  .member-package .print-title {
+    display: block;
+  }
+  .member-package section {
+    margin-bottom: 12pt;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .member-package .print-summary {
+    break-inside: avoid;
+  }
+  .member-package .calc-detail {
+    border: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    margin-top: 12pt;
+  }
+  .member-package .calc-detail > summary {
+    font-size: 12pt;
+    font-weight: 600;
+    list-style: none;
+    padding: 8pt 0;
+  }
+  .member-package .calc-detail > div {
+    padding: 0;
+  }
+  .member-package .calc-detail > div > div {
+    break-inside: avoid;
+  }
+  .member-package svg {
+    max-height: 3in;
+  }
+  .member-package th {
+    position: static;
+  }
+  .member-package .text-faint {
+    color: var(--muted);
+  }
+  .member-package .text-pass,
+  .member-package .text-fail,
+  .member-package .text-warn,
+  .member-package .text-accent {
+    color: var(--ink);
+  }
+  .member-package .print-title {
+    border-radius: 0;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 12pt;
+    margin-bottom: 16pt;
+  }
+  .member-package .print-input-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .member-package .report-body {
+    display: block !important;
+    content-visibility: visible !important;
+  }
+  .member-package details::details-content {
+    display: block !important;
+    content-visibility: visible !important;
+    height: auto !important;
+  }
+}

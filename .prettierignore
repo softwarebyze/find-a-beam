@@ -1,0 +1,5 @@
+dist
+node_modules
+src/data/aisc-shapes-v16.json
+data-source
+package-lock.json
