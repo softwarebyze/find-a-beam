@@ -20,6 +20,7 @@
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@tanstack/react-virtual": "^3.14.26",
     "clsx": "^2.1.1",
+    "pdfjs-dist": "^6.5.438",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router": "^7.18.5"
@@ -33,6 +34,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "jsdom": "^31.0.0",
+    "pdf-lib": "^1.17.1",
     "prettier": "^3.10.1",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
