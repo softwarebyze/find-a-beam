@@ -64,7 +64,7 @@ export interface LimitState {
 }
 
 export interface StrengthResult {
-  kind: "flexure" | "shear" | "compression" | "tension";
+  kind: "flexure" | "shear" | "compression" | "tension" | "torsion" | "connection";
   /** "force" (kip) or "moment" (kip-in.) */
   quantity: "force" | "moment";
   /** Nominal strength (minimum of applicable limit states) */
