@@ -14,7 +14,19 @@ const BeamDesignPage = page(() => import("@/features/beam/BeamDesignPage"), "Bea
 const DiagramsPage = page(() => import("@/features/diagrams/DiagramsPage"), "DiagramsPage");
 const ColumnDesignPage = page(() => import("@/features/column/ColumnDesignPage"), "ColumnDesignPage");
 const MemberCheckPage = page(() => import("@/features/member/MemberCheckPage"), "MemberCheckPage");
+// temporary-j10-page-check-start
+const TestBasePlatePage = page(() => import("@/features/connections/base-plate/BasePlatePage"), "BasePlatePage");
+const TestConcentratedPage = page(
+  () => import("@/features/connections/concentrated/ConcentratedForcesPage"),
+  "ConcentratedForcesPage",
+);
+const TestMomentPage = page(() => import("@/features/connections/moment/MomentConnectionPage"), "MomentConnectionPage");
+// temporary-j10-page-check-end
+const CompositeBeamPage = page(() => import("@/features/composite/CompositeBeamPage"), "CompositeBeamPage");
+const BoltWeldGroupsPage = page(() => import("@/features/connections/groups/BoltWeldGroupsPage"), "BoltWeldGroupsPage");
 const ReferencePage = page(() => import("@/features/reference/ReferencePage"), "ReferencePage");
+
+const TemporaryStabilityPage = page(() => import("@/features/stability/StabilityPage"), "StabilityPage"); // stability-agent-temporary
 
 export const router = createBrowserRouter([
   {
@@ -26,9 +38,17 @@ export const router = createBrowserRouter([
       { path: "compare", element: <ComparePage /> },
       { path: "beam", element: <BeamDesignPage /> },
       { path: "diagrams", element: <DiagramsPage /> },
+      { path: "stability", element: <TemporaryStabilityPage /> }, // stability-agent-temporary
       { path: "column", element: <ColumnDesignPage /> },
       { path: "member", element: <MemberCheckPage /> },
+      { path: "composite", element: <CompositeBeamPage /> },
       { path: "reference", element: <ReferencePage /> },
+      { path: "connections/bolts-welds", element: <BoltWeldGroupsPage /> },
+      // temporary-j10-page-routes-start
+      { path: "connections/base-plate", element: <TestBasePlatePage /> },
+      { path: "connections/concentrated-forces", element: <TestConcentratedPage /> },
+      { path: "connections/moment", element: <TestMomentPage /> },
+      // temporary-j10-page-routes-end
       { path: "*", element: <NotFound /> },
     ],
   },

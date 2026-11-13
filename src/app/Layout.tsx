@@ -1,19 +1,10 @@
 import clsx from "clsx";
-import { Suspense } from "react";
-import { NavLink, Outlet } from "react-router";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { Segmented } from "@/components/ui";
+import { NAV_GROUPS, type NavGroup } from "./nav";
 import { QuickFind } from "./QuickFind";
 import { useSettings, type Theme } from "./settings";
-
-const NAV = [
-  { to: "/shapes", label: "Shapes" },
-  { to: "/beam", label: "Beam design" },
-  { to: "/column", label: "Column design" },
-  { to: "/member", label: "Member check" },
-  { to: "/diagrams", label: "Beam diagrams" },
-  { to: "/compare", label: "Compare" },
-  { to: "/reference", label: "Reference" },
-];
 
 function Logo() {
   return (
@@ -21,6 +12,71 @@ function Logo() {
       <rect width="32" height="32" rx="7" className="fill-ink" />
       <path d="M8 8h16v3.5h-6.25v9H24V24H8v-3.5h6.25v-9H8z" className="fill-canvas" />
     </svg>
+  );
+}
+
+function NavMenu({ group }: { group: NavGroup }) {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  const ref = useRef<HTMLDivElement>(null);
+  const active = group.items.some((i) => pathname.startsWith(i.to));
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((o) => !o)}
+        className={clsx(
+          "flex items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition",
+          active || open ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink",
+        )}
+      >
+        {group.label}
+        <svg viewBox="0 0 12 12" className={clsx("h-3 w-3 transition", open && "rotate-180")} aria-hidden>
+          <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className={clsx(
+            "absolute left-0 top-full z-50 mt-1.5 grid rounded-xl border border-line bg-surface p-1.5 shadow-xl",
+            group.items.length > 5 ? "w-[42rem] grid-cols-2" : "w-[22rem]",
+          )}
+        >
+          {group.items.map((item) => (
+            <Link
+              key={item.to}
+              role="menuitem"
+              to={item.to}
+              className={clsx(
+                "block rounded-lg px-3 py-2 transition hover:bg-surface-2",
+                pathname.startsWith(item.to) && "bg-surface-2",
+              )}
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-medium text-ink">{item.label}</span>
+                <span className="font-mono text-[10.5px] text-faint">{item.ref}</span>
+              </div>
+              <div className="mt-0.5 text-xs leading-snug text-muted">{item.description}</div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -37,20 +93,20 @@ export function Layout() {
             <Logo />
             <span className="text-[15px] font-semibold tracking-tight">Find a Beam</span>
           </NavLink>
-          <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
-            {NAV.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                className={({ isActive }) =>
-                  clsx(
-                    "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition",
-                    isActive ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink",
-                  )
-                }
-              >
-                {n.label}
-              </NavLink>
+          <nav className="flex min-w-0 flex-1 items-center gap-0.5">
+            <NavLink
+              to="/shapes"
+              className={({ isActive }) =>
+                clsx(
+                  "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition",
+                  isActive ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink",
+                )
+              }
+            >
+              Shapes
+            </NavLink>
+            {NAV_GROUPS.map((g) => (
+              <NavMenu key={g.label} group={g} />
             ))}
           </nav>
           <div className="flex shrink-0 items-center gap-2">

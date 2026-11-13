@@ -1,45 +1,7 @@
 import { Link, useNavigate } from "react-router";
+import { NAV_GROUPS } from "@/app/nav";
 import { ShapePicker } from "@/components/ShapePicker";
 import { SHAPES, SHAPE_TYPES, slugOf } from "@/data/shapes";
-
-const TOOLS = [
-  {
-    to: "/shapes",
-    title: "Shape explorer",
-    ref: "Manual Part 1",
-    body: "All 2,299 shapes in the AISC Shapes Database v16.0. Filter and sort on any of 80+ properties, in US or SI units.",
-  },
-  {
-    to: "/beam",
-    title: "Beam design",
-    ref: "Manual Part 3 · AISC 360 Ch. F, G",
-    body: "Enter span, loads and bracing. Get the lightest W-shape that satisfies flexure, shear and deflection, ranked like Table 3-2.",
-  },
-  {
-    to: "/column",
-    title: "Column design",
-    ref: "Manual Part 4 · AISC 360 Ch. E",
-    body: "Available axial strength versus effective length, in the format of Table 4-1, with a lightest-section selector.",
-  },
-  {
-    to: "/member",
-    title: "Member check",
-    ref: "AISC 360 Ch. D–H",
-    body: "Check one member for tension, compression, flexure, shear and combined forces. Every equation is cited in the calc report.",
-  },
-  {
-    to: "/diagrams",
-    title: "Beam diagrams & formulas",
-    ref: "Manual Table 3-23",
-    body: "Shear, moment and deflection for the standard support and load cases, with the closed-form equations.",
-  },
-  {
-    to: "/reference",
-    title: "Reference",
-    ref: "Manual Part 2 · ASCE 7-22",
-    body: "Steel material properties, resistance and safety factors, and the LRFD and ASD load combinations.",
-  },
-];
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -55,8 +17,8 @@ export function HomePage() {
             Steel design without the page-flipping.
           </h1>
           <p className="mt-4 max-w-xl text-base text-muted">
-            Every shape in the Manual, searchable on any property. Beam, column and beam-column design to ANSI/AISC
-            360-22, with each calculation cited to its equation.
+            Every shape in the Manual, searchable on any property. Members, connections, composite beams and stability
+            to ANSI/AISC 360-22, with each calculation cited to its equation.
           </p>
         </div>
         <div className="rounded-xl border border-line bg-surface p-4">
@@ -80,22 +42,27 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {TOOLS.map((t) => (
-          <Link
-            key={t.to}
-            to={t.to}
-            className="group rounded-xl border border-line bg-surface p-5 transition hover:border-line-strong hover:shadow-sm"
-          >
-            <div className="font-mono text-[11px] text-faint">{t.ref}</div>
-            <div className="mt-2 flex items-center justify-between text-base font-semibold text-ink">
-              {t.title}
-              <span className="text-faint transition group-hover:translate-x-0.5 group-hover:text-accent">→</span>
-            </div>
-            <p className="mt-1.5 text-sm text-muted">{t.body}</p>
-          </Link>
-        ))}
-      </section>
+      {NAV_GROUPS.map((group) => (
+        <section key={group.label}>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-faint">{group.label}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {group.items.map((t) => (
+              <Link
+                key={t.to}
+                to={t.to}
+                className="group rounded-xl border border-line bg-surface p-5 transition hover:border-line-strong hover:shadow-sm"
+              >
+                <div className="font-mono text-[11px] text-faint">{t.ref}</div>
+                <div className="mt-2 flex items-center justify-between text-base font-semibold text-ink">
+                  {t.label}
+                  <span className="text-faint transition group-hover:translate-x-0.5 group-hover:text-accent">→</span>
+                </div>
+                <p className="mt-1.5 text-sm text-muted">{t.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
