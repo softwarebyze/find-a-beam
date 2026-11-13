@@ -534,7 +534,12 @@ export function BeamDesignPage() {
                           </button>
                         </td>
                         <td className={table.td}>{fmt(toDisplay(req(c.shape, "W"), "weight", units), 4)}</td>
-                        <td className={table.td}>{fmt(toDisplay(c.capacity, "moment", units), 4)}</td>
+                        <td className={table.td}>
+                          {toDisplay(c.capacity, "moment", units).toLocaleString("en-US", {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1,
+                          })}
+                        </td>
                         <td className={`${table.td} ${c.mRatio <= 1 ? "text-pass" : "text-fail"}`}>
                           {fmt(c.mRatio, 3)}
                         </td>
