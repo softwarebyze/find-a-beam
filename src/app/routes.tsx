@@ -12,21 +12,38 @@ const ShapeDetailPage = page(() => import("@/features/shapes/ShapeDetailPage"), 
 const ComparePage = page(() => import("@/features/shapes/ComparePage"), "ComparePage");
 const BeamDesignPage = page(() => import("@/features/beam/BeamDesignPage"), "BeamDesignPage");
 const DiagramsPage = page(() => import("@/features/diagrams/DiagramsPage"), "DiagramsPage");
+const CompositeBeamPage = page(() => import("@/features/composite/CompositeBeamPage"), "CompositeBeamPage");
 const ColumnDesignPage = page(() => import("@/features/column/ColumnDesignPage"), "ColumnDesignPage");
 const MemberCheckPage = page(() => import("@/features/member/MemberCheckPage"), "MemberCheckPage");
-// temporary-j10-page-check-start
-const TestBasePlatePage = page(() => import("@/features/connections/base-plate/BasePlatePage"), "BasePlatePage");
-const TestConcentratedPage = page(
+const StabilityPage = page(() => import("@/features/stability/StabilityPage"), "StabilityPage");
+const FramePage = page(() => import("@/features/frame/FramePage"), "FramePage");
+const BoltWeldGroupsPage = page(() => import("@/features/connections/groups/BoltWeldGroupsPage"), "BoltWeldGroupsPage");
+const ShearConnectionPage = page(
+  () => import("@/features/connections/shear/ShearConnectionPage"),
+  "ShearConnectionPage",
+);
+const BasePlatePage = page(() => import("@/features/connections/base-plate/BasePlatePage"), "BasePlatePage");
+const ConcentratedForcesPage = page(
   () => import("@/features/connections/concentrated/ConcentratedForcesPage"),
   "ConcentratedForcesPage",
 );
-const TestMomentPage = page(() => import("@/features/connections/moment/MomentConnectionPage"), "MomentConnectionPage");
-// temporary-j10-page-check-end
-const CompositeBeamPage = page(() => import("@/features/composite/CompositeBeamPage"), "CompositeBeamPage");
-const BoltWeldGroupsPage = page(() => import("@/features/connections/groups/BoltWeldGroupsPage"), "BoltWeldGroupsPage");
+const MomentConnectionPage = page(
+  () => import("@/features/connections/moment/MomentConnectionPage"),
+  "MomentConnectionPage",
+);
+const BracketPage = page(() => import("@/features/connections/bracket/BracketPage"), "BracketPage");
+const BracingConnectionPage = page(
+  () => import("@/features/connections/bracing/BracingConnectionPage"),
+  "BracingConnectionPage",
+);
+const HangerPage = page(() => import("@/features/connections/hanger/HangerPage"), "HangerPage");
+const HssConnectionPage = page(() => import("@/features/connections/hss/HssConnectionPage"), "HssConnectionPage");
+const FatiguePage = page(() => import("@/features/fatigue/FatiguePage"), "FatiguePage");
+const VibrationPage = page(() => import("@/features/vibration/VibrationPage"), "VibrationPage");
+const PondingPage = page(() => import("@/features/ponding/PondingPage"), "PondingPage");
+const FirePage = page(() => import("@/features/fire/FirePage"), "FirePage");
 const ReferencePage = page(() => import("@/features/reference/ReferencePage"), "ReferencePage");
-
-const TemporaryStabilityPage = page(() => import("@/features/stability/StabilityPage"), "StabilityPage"); // stability-agent-temporary
+const ReferenceLibraryPage = page(() => import("@/features/references/ReferenceLibraryPage"), "ReferenceLibraryPage");
 
 export const router = createBrowserRouter([
   {
@@ -37,18 +54,27 @@ export const router = createBrowserRouter([
       { path: "shapes/:slug", element: <ShapeDetailPage /> },
       { path: "compare", element: <ComparePage /> },
       { path: "beam", element: <BeamDesignPage /> },
+      { path: "composite", element: <CompositeBeamPage /> },
       { path: "diagrams", element: <DiagramsPage /> },
-      { path: "stability", element: <TemporaryStabilityPage /> }, // stability-agent-temporary
       { path: "column", element: <ColumnDesignPage /> },
       { path: "member", element: <MemberCheckPage /> },
-      { path: "composite", element: <CompositeBeamPage /> },
+      { path: "frame", element: <FramePage /> },
+      { path: "stability", element: <StabilityPage /> },
+      { path: "fatigue", element: <FatiguePage /> },
+      { path: "vibration", element: <VibrationPage /> },
+      { path: "ponding", element: <PondingPage /> },
+      { path: "fire", element: <FirePage /> },
       { path: "reference", element: <ReferencePage /> },
+      { path: "references", element: <ReferenceLibraryPage /> },
       { path: "connections/bolts-welds", element: <BoltWeldGroupsPage /> },
-      // temporary-j10-page-routes-start
-      { path: "connections/base-plate", element: <TestBasePlatePage /> },
-      { path: "connections/concentrated-forces", element: <TestConcentratedPage /> },
-      { path: "connections/moment", element: <TestMomentPage /> },
-      // temporary-j10-page-routes-end
+      { path: "connections/shear", element: <ShearConnectionPage /> },
+      { path: "connections/base-plate", element: <BasePlatePage /> },
+      { path: "connections/concentrated-forces", element: <ConcentratedForcesPage /> },
+      { path: "connections/moment", element: <MomentConnectionPage /> },
+      { path: "connections/bracket", element: <BracketPage /> },
+      { path: "connections/bracing", element: <BracingConnectionPage /> },
+      { path: "connections/hanger", element: <HangerPage /> },
+      { path: "connections/hss", element: <HssConnectionPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },

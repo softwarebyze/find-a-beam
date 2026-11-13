@@ -114,6 +114,12 @@ export interface TensionResult extends StrengthResult {
 }
 
 export interface FlexureInput {
+  /** F10 explicit principal-axis design; major = w, minor = z. Resolve applied moments before use. */
+  principalAxis?: boolean;
+  /** F10-4 sign: false (default) conservatively assumes long leg in compression somewhere. */
+  shortLegInCompression?: boolean;
+  /** Override |βw| (in.) for sizes absent from Commentary Table C-F10.1. */
+  betaW?: number;
   /** F9: true if the stem/web legs are in compression anywhere in the unbraced segment. */
   stemInCompression?: boolean;
   /** F10: continuous lateral-torsional restraint permits geometric-axis design. */

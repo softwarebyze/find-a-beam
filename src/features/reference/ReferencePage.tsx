@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { ASD_COMBINATIONS, LRFD_COMBINATIONS } from "@/analysis/load-combinations";
 import { Card, PageHeader, SpecRef, table } from "@/components/ui";
 import { useSettings } from "@/app/settings";
@@ -121,9 +122,85 @@ export function ReferencePage() {
           </ol>
         </Card>
       </div>
+
+      <Card
+        title="Specification coverage"
+        subtitle="ANSI/AISC 360-22 chapters and appendices, and the tool that implements each"
+        bodyClassName="p-0"
+      >
+        <div className={table.wrap}>
+          <table className={table.table}>
+            <thead>
+              <tr>
+                <th className={table.th}>Provision</th>
+                <th className={table.th}>Subject</th>
+                <th className={table.th}>Where it is used</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COVERAGE.map((row) => (
+                <tr key={row.ref} className={table.tr}>
+                  <td className={`${table.td} whitespace-nowrap`}>
+                    <SpecRef>{row.ref}</SpecRef>
+                  </td>
+                  <td className={`${table.td} whitespace-normal`}>{row.subject}</td>
+                  <td className={`${table.td} whitespace-normal text-xs text-muted`}>
+                    {row.to ? (
+                      <Link to={row.to} className="text-accent underline decoration-line underline-offset-2">
+                        {row.tool}
+                      </Link>
+                    ) : (
+                      row.tool
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mx-4 my-3 text-xs leading-relaxed text-muted">
+          Not implemented: Chapter N quality and inspection requirements, AISC 341 seismic prequalified connections, plate-wall buckling,
+          connection stiffness and FR/PR classification beyond the referenced checks, and advanced heat transfer. Results are for qualified
+          engineers and require independent verification.
+        </p>
+      </Card>
     </>
   );
 }
+
+/** Where each provision is exercised in the app. Kept short on purpose; the calculators carry the detail. */
+const COVERAGE: { ref: string; subject: string; tool: string; to?: string }[] = [
+  { ref: "§B3", subject: "Design basis: required vs. available strength, resistance and safety factors", tool: "Every calculator", to: "/member" },
+  { ref: "§B4", subject: "Member proportion limits and element slenderness classification", tool: "Member check, shape pages", to: "/member" },
+  { ref: "Chapter C", subject: "Stability analysis, direct analysis method, notional loads, τb", tool: "Frame analysis", to: "/frame" },
+  { ref: "Chapter D", subject: "Tension members: yielding, rupture, block shear, pin-connected members", tool: "Member check", to: "/member" },
+  { ref: "Chapter E", subject: "Compression members: flexural, torsional and flexural-torsional buckling", tool: "Column design, member check", to: "/column" },
+  { ref: "Chapter F", subject: "Flexure: compact, noncompact and slender sections; LTB; tees, channels, HSS, angles", tool: "Beam design, member check", to: "/beam" },
+  { ref: "Chapter G", subject: "Shear: rolled I-shapes, built-up sections, HSS, weak-axis and round bars", tool: "Beam design, member check", to: "/beam" },
+  { ref: "Chapter H", subject: "Combined forces and torsion, including HSS H3 interaction", tool: "Member check", to: "/member" },
+  { ref: "Chapter I", subject: "Composite members: plastic strength, studs, composite beams", tool: "Composite beams", to: "/composite" },
+  { ref: "Chapter J", subject: "Connections: bolts, welds, elements, block shear, concentrated forces", tool: "Connection calculators", to: "/connections/bolts-welds" },
+  { ref: "Chapter K", subject: "HSS connections: plate-to-HSS, truss joints, moment connections", tool: "HSS connections", to: "/connections/hss" },
+  { ref: "Appendix 2", subject: "Ponding: simplified and improved methods (withdrawn from 360-22; retained as a 360-16 aid)", tool: "Ponding", to: "/ponding" },
+  { ref: "Appendix 3", subject: "Fatigue: detail categories, stress-range curves, peak stress limits", tool: "Fatigue", to: "/fatigue" },
+  { ref: "Appendix 4", subject: "Fire: simple methods for elevated-temperature member strength", tool: "Fire", to: "/fire" },
+  { ref: "Appendix 6", subject: "Stability bracing: nodal, lateral and torsional bracing requirements", tool: "Stability", to: "/stability" },
+  { ref: "Appendix 7", subject: "Effective length method and alignment-chart K factors", tool: "Frame analysis, stability", to: "/stability" },
+  { ref: "Appendix 8", subject: "B1/B2 amplification and second-order analysis", tool: "Member check, stability", to: "/member" },
+  { ref: "Manual Part 1", subject: "Shape properties and dimensions for all 2,299 sections", tool: "Shape explorer", to: "/shapes" },
+  { ref: "Manual Part 3", subject: "Beam selection tables and beam diagrams", tool: "Beam design, diagrams", to: "/beam" },
+  { ref: "Manual Part 4", subject: "Column selection tables", tool: "Column design", to: "/column" },
+  { ref: "Manual Part 7", subject: "Eccentric bolt groups by instantaneous center", tool: "Bolts and welds", to: "/connections/bolts-welds" },
+  { ref: "Manual Part 8", subject: "Eccentric weld groups by instantaneous center", tool: "Bolts and welds", to: "/connections/bolts-welds" },
+  { ref: "Manual Part 9", subject: "Simple shear connections and hangers", tool: "Shear connections, hangers", to: "/connections/shear" },
+  { ref: "Manual Part 10", subject: "Coped beams and shear connection tables", tool: "Shear connections", to: "/connections/shear" },
+  { ref: "Manual Part 11", subject: "Moment connections", tool: "Moment connections", to: "/connections/moment" },
+  { ref: "Manual Part 12", subject: "Flange-plate and welded-flange moment connections", tool: "Moment connections", to: "/connections/moment" },
+  { ref: "Manual Part 13", subject: "Bracing and truss connections", tool: "Bracing connections", to: "/connections/bracing" },
+  { ref: "Manual Part 14", subject: "Base plates and anchor rods", tool: "Base plates", to: "/connections/base-plate" },
+  { ref: "Manual Part 15", subject: "Eccentrically loaded brackets", tool: "Bracket plates", to: "/connections/bracket" },
+  { ref: "Manual Part 16", subject: "Specification and Commentary", tool: "Reference previews" },
+];
 
 /** Collapse "Lr / S / R" expansions back into one printed combination. */
 function dedupe(ids: string[], labels: string[]): [string, string][] {

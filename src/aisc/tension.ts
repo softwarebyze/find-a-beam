@@ -82,3 +82,6 @@ export function tensionStrength(shape: Shape, mat: Material, input: TensionDesig
         : [],
   };
 }
+
+export { pinConnectedStrength, eyebarStrength } from "./tension/pins";
+export type { PinInput, EyebarInput, DetailedTensionResult, DimensionalCheck } from "./tension/pins";

@@ -40,7 +40,7 @@ export interface StressInteractionInput {
 }
 export interface ExtendedInteractionResult {
   ratio: number;
-  equation: InteractionResult["equation"] | "H1-3" | "H2-1";
+  equation: InteractionResult["equation"] | "H1-3" | "H2-1" | "H3-6";
   steps: CalcStep[];
   checks?: { name: string; ratio: number; ref: string; quantity: "ratio" }[];
 }
@@ -208,6 +208,53 @@ export function tensionLtbFactor(
         quantity: "ratio",
         ref: "§H1.2",
         note: "Recompute Chapter F available flexural strength; this does not multiply Mcx directly.",
+      },
+    ],
+  };
+}
+
+export interface HssTorsionInteractionInput extends InteractionInput {
+  Tr: number;
+  Tc: number;
+  Vrx: number;
+  Vcx: number;
+  Vry?: number;
+  Vcy?: number;
+}
+/** §H3.2: strengths and demands must use the same method basis. */
+export function hssTorsionInteraction(
+  input: HssTorsionInteractionInput,
+): ExtendedInteractionResult & { torsionNeglected: boolean } {
+  const { Tr, Tc, Vrx, Vcx, Vry = 0, Vcy } = input;
+  finite(Tr, "Tr");
+  finite(Vrx, "Vrx");
+  finite(Vry, "Vry");
+  positive(Tc, "Tc");
+  positive(Vcx, "Vcx");
+  if (Vcy !== undefined) positive(Vcy, "Vcy");
+  if (Vry !== 0 && Vcy === undefined) throw new RangeError("Nonzero Vry requires Vcy");
+  const t = Math.abs(Tr) / Tc;
+  if (t <= 0.2) return { ...h1(input), torsionNeglected: true };
+  finite(input.Pr, "Pr");
+  finite(input.Mrx, "Mrx");
+  positive(input.Pc, "Pc");
+  positive(input.Mcx, "Mcx");
+  const axial = Math.abs(input.Pr) / input.Pc,
+    bending = Math.abs(input.Mrx) / input.Mcx + minorRatio(input.Mry, input.Mcy);
+  const shear = Math.max(Math.abs(Vrx) / Vcx, Math.abs(Vry) / (Vcy ?? 1));
+  const ratio = axial + bending + (shear + t) ** 2;
+  return {
+    ratio,
+    equation: "H3-6",
+    torsionNeglected: false,
+    steps: [
+      {
+        label: "HSS combined torsion interaction",
+        expr: "P{r}/P{c} + M{rx}/M{cx} + M{ry}/M{cy} + (max[V{rx}/V{cx}, V{ry}/V{cy}] + T{r}/T{c})² ≤ 1",
+        value: ratio,
+        quantity: "ratio",
+        ref: "Eq. H3-6",
+        note: "All terms are positive. The larger shear ratio from the two axes is used.",
       },
     ],
   };

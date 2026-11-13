@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router";
-import { EFFECTIVE_LENGTH_CASES } from "@/aisc";
+import { alignmentK, EFFECTIVE_LENGTH_CASES } from "@/aisc";
 import { useSettings } from "@/app/settings";
 import { CalcReport, StepRow } from "@/components/CalcReport";
 import { ShapePicker } from "@/components/ShapePicker";
@@ -68,8 +68,14 @@ export function ColumnDesignPage() {
   const Lx = q.numOr("Lx", 168),
     Ly = q.numOr("Ly", 168),
     Lz = q.numOr("Lz", 168);
-  const Kx = resolveK(parseK(q.str("Kx"))),
-    Ky = resolveK(parseK(q.str("Ky"))),
+  const chartK = (axis: string) =>
+    alignmentK({
+      GA: Math.max(0, q.numOr(`GA${axis}`, 1)),
+      GB: Math.max(0, q.numOr(`GB${axis}`, 1)),
+      sway: q.bool(`sway${axis}`, true),
+    });
+  const Kx = q.str("Kx") === "alignment" ? chartK("x") : resolveK(parseK(q.str("Kx"))),
+    Ky = q.str("Ky") === "alignment" ? chartK("y") : resolveK(parseK(q.str("Ky"))),
     Kz = resolveK(parseK(q.str("Kz")));
   const e5 = family.id === "L" && q.bool("e5");
   const lengths: ColumnLengths = {
@@ -136,7 +142,7 @@ export function ColumnDesignPage() {
       <div className="space-y-1.5" key={axis}>
         <Select
           label={<Sym s={`K{${axis}} end restraint`} />}
-          value={selection.kind === "case" ? selection.id : "custom"}
+          value={q.str(key) === "alignment" ? "alignment" : selection.kind === "case" ? selection.id : "custom"}
           onChange={(v) => q.set({ [key]: v === "custom" ? "1" : v })}
           options={[
             ...EFFECTIVE_LENGTH_CASES.map((c) => ({
@@ -144,14 +150,44 @@ export function ColumnDesignPage() {
               label: `(${c.id}) K = ${c.recommendedK} · ${c.description}`,
             })),
             { value: "custom", label: "Custom K" },
+            ...(axis !== "z" ? [{ value: "alignment", label: "Use alignment chart" }] : []),
           ]}
         />
-        {selection.kind === "custom" && (
+        {q.str(key) !== "alignment" && selection.kind === "custom" && (
           <NumberInput
             label="Custom K"
             value={selection.K}
             onChange={(v) => q.set({ [key]: v && v > 0 ? String(v) : "1" })}
           />
+        )}
+        {q.str(key) === "alignment" && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              {["GA", "GB"].map((g) => (
+                <NumberInput
+                  key={g}
+                  label={`${g} · ${axis}`}
+                  value={q.numOr(`${g}${axis}`, 1)}
+                  onChange={(v) => q.set({ [`${g}${axis}`]: Math.max(0, v ?? 0) })}
+                />
+              ))}
+            </div>
+            <Select
+              label="Frame sidesway"
+              value={q.bool(`sway${axis}`, true) ? "sway" : "braced"}
+              onChange={(v) => q.set({ [`sway${axis}`]: v === "sway" })}
+              options={[
+                { value: "sway", label: "Sidesway permitted" },
+                { value: "braced", label: "Sidesway inhibited" },
+              ]}
+            />
+            <p className="num text-xs text-muted">
+              K = {fmt(chartK(axis), 4)} · <SpecRef>Commentary Eqs. C-A-7-1/2</SpecRef>
+            </p>
+            <Link className="text-xs text-accent" to="/stability">
+              Joint stiffness calculator and assumptions
+            </Link>
+          </div>
         )}
       </div>
     );

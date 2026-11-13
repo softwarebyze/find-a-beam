@@ -21,6 +21,7 @@ import { displayLabel, familyOf, findShape, num, slugOf } from "@/data/shapes";
 import { useQueryState, type Patch } from "@/features/column/url-state";
 import { CrossSection } from "@/features/drawings/CrossSection";
 import { fmt, fmtQ, type Quantity } from "@/lib/units";
+import { LineChart } from "@/components/charts/LineChart";
 import { InteractionDiagram } from "./InteractionDiagram";
 import { checkMember, supportsH1, type MemberInput } from "./member-check";
 import "./member-print.css";
@@ -84,6 +85,18 @@ export function MemberCheckPage() {
           }
         : {}),
     },
+    ...(q.bool("torsion")
+      ? {
+          torsion: {
+            Tu: q.numOr("Tu", 0),
+            L: q.numOr("Lt", 168),
+            load: q.str("tload") === "uniform" ? ("uniform" as const) : ("midspan" as const),
+            ends: q.str("tends") === "fixed" ? ("fixed" as const) : ("pinned" as const),
+            FcrNormal: q.numOr("tFcr", 0),
+            FcrShear: q.numOr("tFcrShear", 0),
+          },
+        }
+      : {}),
     ...(ends
       ? {
           endMoments: {
@@ -278,6 +291,45 @@ export function MemberCheckPage() {
                 Direct {method} demands on the same load combination. Vx is minor-axis shear; Vy is major-axis web
                 shear. Moments must include the applicable Chapter C second-order effects.
               </p>
+            </div>
+          </Card>
+          <Card title="Torsion" subtitle={<SpecRef>§H3 · AISC Design Guide 9</SpecRef>}>
+            <div className="space-y-3">
+              {checkbox("torsion", "Include torsional demand", q.bool("torsion"))}
+              {input.torsion && (
+                <>
+                  {field("Tu", method === "LRFD" ? "T{u}" : "T{a}", input.torsion.Tu, "moment")}
+                  {field("Lt", "Torsion member length", input.torsion.L)}
+                  {!["hss-rect", "hss-round", "pipe"].includes(family) && (
+                    <>
+                      <Select
+                        label="Applied torque pattern"
+                        value={input.torsion.load}
+                        onChange={(tload) => setInput({ tload })}
+                        options={[
+                          { value: "midspan", label: "Concentrated at midspan" },
+                          { value: "uniform", label: "Uniformly distributed (Tu = total torque)" },
+                        ]}
+                      />
+                      <Select
+                        label="Both torsional ends"
+                        value={input.torsion.ends}
+                        onChange={(tends) => setInput({ tends })}
+                        options={[
+                          { value: "pinned", label: "Twist restrained · warping free" },
+                          { value: "fixed", label: "Twist and warping restrained" },
+                        ]}
+                      />
+                      {field("tFcr", "Normal buckling stress from analysis", input.torsion.FcrNormal, "stress")}
+                      {field("tFcrShear", "Shear buckling stress from analysis", input.torsion.FcrShear, "stress")}
+                      <p className="text-xs text-muted">
+                        Prismatic I-shapes/channels; elastic DG9 response. H3-9 buckling stresses require analysis.
+                        Applied and warping stress maxima are added conservatively.
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </Card>
           <Card title="Bracing & moment gradient">
@@ -529,10 +581,20 @@ export function MemberCheckPage() {
                   <RatioBar ratio={c.ratio} />
                 </div>
               ))}
+              {report.torsion && (
+                <div className="space-y-1">
+                  <div className="text-xs font-medium">DG9 + H3.3 combined stress</div>
+                  <RatioBar ratio={report.torsion.ratio} />
+                </div>
+              )}
               {report.interaction && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium">Axial + flexure interaction</span>
+                    <span className="font-medium">
+                      {report.interaction.equation === "H3-6"
+                        ? "Axial + flexure + shear + torsion"
+                        : "Axial + flexure interaction"}
+                    </span>
                     <SpecRef>Eq. {report.interaction.equation}</SpecRef>
                   </div>
                   <RatioBar ratio={report.interaction.ratio} />
@@ -540,12 +602,32 @@ export function MemberCheckPage() {
               )}
             </div>
           </Card>
-          {!h2 && p && mx && my && report.interaction && (
+          {!h2 && p && mx && my && report.interaction && report.interaction.equation !== "H3-6" && (
             <Card title="H1 interaction diagram" subtitle="Design point includes both bending axes">
               <InteractionDiagram
                 axial={input.P / p.capacity}
                 moment={Math.abs(report.moments.x) / mx.capacity + Math.abs(report.moments.y) / my.capacity}
               />
+            </Card>
+          )}
+          {report.torsion && (
+            <Card title="Open-section torsion · DG9" subtitle={<SpecRef>§H3.3</SpecRef>}>
+              <LineChart
+                xLabel="x / L"
+                yLabel="Twist (rad)"
+                series={[
+                  {
+                    id: "twist",
+                    label: "θ",
+                    points: report.torsion.stations.map((s) => ({ x: s.x / input.torsion!.L, y: s.theta })),
+                  },
+                ]}
+              />
+              <div className="divide-y divide-line">
+                {report.torsion.steps.map((step, i) => (
+                  <StepRow key={i} step={step} />
+                ))}
+              </div>
             </Card>
           )}
           <Card title="Calculation basis & input schedule" subtitle={<SpecRef>§B3 · Ch. C</SpecRef>}>
@@ -556,6 +638,15 @@ export function MemberCheckPage() {
                 ["Required My", printMoment(report.moments.y)],
                 ["Vx / Vy", `${fmtQ(input.Vx, "force", units)} / ${fmtQ(input.Vy, "force", units)}`],
                 ["Lb", fmtQ(input.Lb, "span", units)],
+                ...(input.torsion
+                  ? [
+                      [
+                        "Torsion",
+                        `${fmtQ(input.torsion.Tu, "moment", units)} · ${input.torsion.load} · ${input.torsion.ends}`,
+                      ],
+                      ["Torsion length", fmtQ(input.torsion.L, "span", units)],
+                    ]
+                  : []),
                 ["Lcx / Lcy / Lcz", [Lcx, Lcy, Lcz].map((v) => fmtQ(v, "span", units)).join(" / ")],
                 ["Cb", fmt(report.Cb)],
                 [

@@ -203,6 +203,7 @@ function teeMinorFlexure(s: Shape, m: Material, input: FlexureInput, c: FlexureC
 }
 
 export function singleAngleFlexure(s: Shape, m: Material, input: FlexureInput, c: FlexureContext): FlexureResult {
+  if (input.principalAxis) return principalAngleFlexure(s, m, input, c);
   const { Fy } = m,
     {
       axis,
@@ -216,7 +217,7 @@ export function singleAngleFlexure(s: Shape, m: Material, input: FlexureInput, c
     restrained = continuousLateralRestraint || Lb === 0;
   if (!restrained && !equal)
     throw new UnsupportedError(
-      "§F10 permits unrestrained geometric-axis bending only for equal-leg angles. Unequal-leg angles require principal-axis moments and an H2 combined-stress check; supply continuousLateralRestraint only when it is provided.",
+      "§F10 permits unrestrained geometric-axis bending only for equal-leg angles. For unequal-leg angles, set principalAxis: true after resolving the applied moments into w/z and use H2 for combined stresses; supply continuousLateralRestraint only when provided.",
     );
   // The AISC angle database's x-axis has the longer leg perpendicular to it;
   // b is the longer leg dimension even where d is the shorter dimension.
@@ -261,4 +262,77 @@ export function singleAngleFlexure(s: Shape, m: Material, input: FlexureInput, c
     legLocal(c, parallelLeg / t, Fy, compressionSc, "LLB", "Parallel-leg local buckling");
   }
   return finish(c, Mp, "§F10 Single angles — geometric-axis bending");
+}
+
+/** Principal w/z axes; moduli at all three database points avoid a heel/toe omission. */
+function principalAngleFlexure(s: Shape, m: Material, input: FlexureInput, c: FlexureContext): FlexureResult {
+  const major = input.axis === "major",
+    prefix = major ? "Sw" : "Sz";
+  const moduli = ["A", "B", "C"].map((p) => req(s, prefix + p));
+  const S = Math.min(...moduli),
+    My = m.Fy * S,
+    Mp = 1.5 * My;
+  const b = req(s, "b"),
+    d = req(s, "d"),
+    t = req(s, "t");
+  c.steps = c.steps.filter((x) => !x.label.includes("geometric"));
+  c.steps.push(
+    ...moduli.map((v, i) =>
+      step(
+        `Principal modulus at point ${["A", "B", "C"][i]}`,
+        `${prefix}{${["A", "B", "C"][i]}}`,
+        v,
+        "modulus",
+        "§F10 / Shapes Database v16.0",
+      ),
+    ),
+  );
+  c.limitStates.push(state("Y", "Principal-axis yielding", Mp, "Eq. F10-1"));
+  if (major && input.Lb > 0 && !input.continuousLateralRestraint) {
+    const table: Record<string, number> = {
+      "8/6": 3.31,
+      "8/4": 5.48,
+      "7/4": 4.37,
+      "6/4": 3.14,
+      "6/3.5": 3.69,
+      "5/3.5": 2.4,
+      "5/3": 2.99,
+      "4/3.5": 0.87,
+      "4/3": 1.65,
+      "3.5/3": 0.87,
+      "3.5/2.5": 1.62,
+      "3/2.5": 0.86,
+      "3/2": 1.56,
+      "2.5/2": 0.85,
+      "2.5/1.5": 1.49,
+    };
+    const magnitude = input.betaW ?? (b === d ? 0 : table[`${Math.max(b, d)}/${Math.min(b, d)}`]);
+    if (magnitude === undefined)
+      throw new UnsupportedError("Supply betaW for this angle size (Commentary Table C-F10.1).");
+    if (!Number.isFinite(magnitude) || magnitude < 0)
+      throw new RangeError("betaW must be a nonnegative finite magnitude");
+    const beta = (input.shortLegInCompression ? 1 : -1) * magnitude;
+    const rz = req(s, "rz"),
+      B = (4.4 * beta * rz) / (input.Lb * t);
+    const bracket = B < 0 ? 1 / (Math.sqrt(1 + B * B) - B) : Math.sqrt(1 + B * B) + B;
+    const Mcr = (((9 / 8) * E * req(s, "A") * rz * t * Math.min(input.Cb ?? 1, 1.5)) / input.Lb) * bracket;
+    c.limitStates.push(
+      state(
+        "LTB",
+        "Principal w-axis lateral-torsional buckling",
+        angleLtb(My, Mcr),
+        My / Mcr <= 1 ? "Eq. F10-2" : "Eq. F10-3",
+        [
+          step("Signed monosymmetry parameter", "β{w}", beta, "length", "Table C-F10.1"),
+          step("Elastic critical moment", "M{cr}", Mcr, "moment", "Eq. F10-4"),
+        ],
+      ),
+    );
+  }
+  // Conservative local envelope: both legs and all critical-point moduli, regardless of moment sense.
+  legLocal(c, Math.max(b, d) / t, m.Fy, S, "LLB", "Leg local buckling (conservative both-leg envelope)");
+  c.warnings.push(
+    "Principal axes: major = w, minor = z. Resolve applied moments into w/z and evaluate signed point stresses under H2. Local buckling conservatively envelopes both legs; z-axis LTB does not apply. βw is negative unless short-leg compression throughout is explicitly selected.",
+  );
+  return finish(c, Mp, "§F10 Single angles — principal-axis bending");
 }

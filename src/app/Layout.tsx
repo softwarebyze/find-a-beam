@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { Segmented } from "@/components/ui";
+import { ReferenceProvider } from "@/lib/references/preview";
 import { NAV_GROUPS, type NavGroup } from "./nav";
 import { QuickFind } from "./QuickFind";
 import { useSettings, type Theme } from "./settings";
@@ -80,20 +81,94 @@ function NavMenu({ group }: { group: NavGroup }) {
   );
 }
 
+/** Full-site menu for viewports narrower than the desktop header (below xl). */
+function MobileMenu() {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", esc);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", esc);
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+  return (
+    <div className="xl:hidden">
+      <button
+        type="button"
+        aria-label="Open menu"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        className="flex h-7 w-7 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-ink"
+      >
+        <svg viewBox="0 0 16 16" className="h-4 w-4" aria-hidden>
+          <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 bg-ink/30 backdrop-blur-[2px]" onMouseDown={() => setOpen(false)}>
+          <nav
+            aria-label="Site"
+            className="absolute inset-y-0 right-0 w-full max-w-sm overflow-y-auto border-l border-line bg-surface p-4 shadow-2xl"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <Link to="/shapes" className="text-sm font-semibold text-ink">
+                Shapes
+              </Link>
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setOpen(false)}
+                className="text-muted hover:text-ink"
+              >
+                ✕
+              </button>
+            </div>
+            {NAV_GROUPS.map((g) => (
+              <div key={g.label} className="border-t border-line py-3">
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint">{g.label}</div>
+                {g.items.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={clsx(
+                      "flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 text-sm",
+                      pathname.startsWith(item.to) ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink",
+                    )}
+                  >
+                    {item.label}
+                    <span className="font-mono text-[10.5px] text-faint">{item.ref}</span>
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </nav>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const THEME_ICON: Record<Theme, string> = { light: "☀", dark: "☾", system: "◐" };
 const NEXT_THEME: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
 
 export function Layout() {
   const { units, setUnits, method, setMethod, theme, setTheme } = useSettings();
   return (
-    <div className="min-h-dvh">
+    <ReferenceProvider>
+      <div className="min-h-dvh">
       <header className="no-print sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-4 px-4">
           <NavLink to="/" className="flex shrink-0 items-center gap-2">
             <Logo />
             <span className="text-[15px] font-semibold tracking-tight">Find a Beam</span>
           </NavLink>
-          <nav className="flex min-w-0 flex-1 items-center gap-0.5">
+          <nav className="hidden min-w-0 flex-1 items-center gap-0.5 xl:flex">
             <NavLink
               to="/shapes"
               className={({ isActive }) =>
@@ -109,6 +184,7 @@ export function Layout() {
               <NavMenu key={g.label} group={g} />
             ))}
           </nav>
+          <div className="flex-1 xl:hidden" />
           <div className="flex shrink-0 items-center gap-2">
             <QuickFind />
             <Segmented
@@ -139,6 +215,7 @@ export function Layout() {
             >
               {THEME_ICON[theme]}
             </button>
+            <MobileMenu />
           </div>
         </div>
       </header>
@@ -158,6 +235,7 @@ export function Layout() {
           </a>
         </div>
       </footer>
-    </div>
+      </div>
+    </ReferenceProvider>
   );
 }

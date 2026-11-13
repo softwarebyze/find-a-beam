@@ -14,6 +14,9 @@ function nonnegative(v: number, name: string): number {
 export type ShearLagInput =
   | { case: 1 }
   | { case: 3 }
+  | { case: 5; section: "round"; D: number; gussetThickness: number; length: number }
+  | { case: 5; section: "rectangular"; B: number; H: number; t: number; gussetThickness: number; length: number }
+  | { case: 6; B: number; H: number; length: number }
   | { case: 2; xBar: number; length: number; connectedAreaRatio?: number }
   | { case: 4; xBar: number; length: number; width: number; connectedAreaRatio?: number }
   | {
@@ -34,6 +37,7 @@ export function shearLagU(input: ShearLagInput): number {
 }
 export function shearLagReport(input: ShearLagInput): { U: number; steps: CalcStep[] } {
   let U: number, expr: string;
+  const geometrySteps: CalcStep[] = [];
   const ref = `Table D3.1, Case ${input.case}`;
   const case2 = (x: number, l: number) => 1 - nonnegative(x, "xBar") / positive(l, "length");
   if (input.case === 1 || input.case === 3) {
@@ -42,6 +46,45 @@ export function shearLagReport(input: ShearLagInput): { U: number; steps: CalcSt
   } else if (input.case === 2) {
     U = case2(input.xBar, input.length);
     expr = "1 − x{bar}/l";
+  } else if (input.case === 5) {
+    positive(input.length, "length");
+    nonnegative(input.gussetThickness, "gusset thickness");
+    let xBar: number;
+    if (input.section === "round") {
+      const R = positive(input.D, "D") / 2;
+      if (input.gussetThickness >= input.D) throw new RangeError("Gusset must fit inside diameter");
+      const theta = Math.acos(input.gussetThickness / (2 * R));
+      xBar = (R * Math.sin(theta)) / theta - input.gussetThickness / 2;
+      U = (1 + (xBar / input.length) ** 3.2) ** -10;
+      expr = "[1 + (x{bar}/l)^3.2]^−10";
+    } else {
+      const { B, H, t } = input;
+      positive(B, "B");
+      positive(H, "H");
+      positive(t, "t");
+      if (2 * t >= Math.min(B, H) || input.gussetThickness >= B - 2 * t)
+        throw new RangeError("Invalid HSS/gusset dimensions");
+      const b = (B - input.gussetThickness) / 2;
+      xBar = b - (2 * b ** 2 + H * t - 2 * t ** 2) / (4 * b + 2 * H - 4 * t);
+      U = case2(xBar, input.length);
+      expr = "1 − x{bar}/l";
+    }
+    geometrySteps.push({
+      label: "Eccentricity of half-section from gusset face",
+      symbol: "x{bar}",
+      value: xBar,
+      quantity: "length",
+      ref,
+    });
+  } else if (input.case === 6) {
+    const { B, H, length: l } = input;
+    positive(B, "B");
+    positive(H, "H");
+    positive(l, "length");
+    const UB = (3 * l * l) / (3 * l * l + B * B),
+      UH = (3 * l * l) / (3 * l * l + H * H);
+    U = (B * UB + H * UH) / (B + H);
+    expr = "(BU{B} + HU{H})/(H+B)";
   } else if (input.case === 4) {
     positive(input.width, "width");
     U = ((3 * input.length ** 2) / (3 * input.length ** 2 + input.width ** 2)) * case2(input.xBar, input.length);
@@ -77,6 +120,7 @@ export function shearLagReport(input: ShearLagInput): { U: number; steps: CalcSt
   return {
     U,
     steps: [
+      ...geometrySteps,
       {
         label: "Shear lag factor",
         symbol: "U",

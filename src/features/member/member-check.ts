@@ -1,6 +1,10 @@
 /** Member checks orchestrate the cited engine; all values are in kip, in., ksi. */
 import {
   available,
+  torsionalStrength,
+  hssTorsionInteraction,
+  openTorsionCheck,
+  type OpenTorsionInput,
   cbFromMoments,
   Cm,
   compressionStrength,
@@ -37,6 +41,7 @@ export interface MemberInput {
   endMoments?: { x1: number; x2: number; y1: number; y2: number };
   amplification?: { cmX: number; cmY: number; stiffness: number; L1x: number; L1y: number };
   tension?: { An?: number; U?: number };
+  torsion?: Omit<OpenTorsionInput, "T"> & { Tu: number; FcrNormal?: number; FcrShear?: number };
   h2?: { points: StressInteractionPoint[]; confirmed: boolean };
 }
 export interface MemberStrengthCheck {
@@ -52,6 +57,7 @@ export interface MemberReport {
   checks: MemberStrengthCheck[];
   errors: { check: string; message: string }[];
   interaction?: ExtendedInteractionResult;
+  torsion?: ReturnType<typeof openTorsionCheck>;
   amplification: CalcStep[];
   inputSteps: CalcStep[];
   moments: { x: number; y: number };
@@ -248,7 +254,54 @@ export function checkMember(input: MemberInput): MemberReport {
   } catch (e) {
     error("Interaction", e);
   }
+  if (input.torsion) {
+    const t = input.torsion;
+    if (["hss-rect", "hss-round", "pipe"].includes(familyOf(shape))) {
+      check("torsion", "Torsion", t.Tu, "§H3.1", () => torsionalStrength(shape, material, { L: t.L }));
+      try {
+        const find = (id: string) => {
+          const c = report.checks.find((c) => c.id === id);
+          if (!c) throw new Error(`H3 requires ${id} capacity`);
+          return c.capacity;
+        };
+        report.interaction = hssTorsionInteraction({
+          Pr: input.P,
+          Pc: find("axial"),
+          Mrx: report.moments.x,
+          Mcx: find("mx"),
+          Mry: report.moments.y,
+          Mcy: find("my"),
+          Tr: t.Tu,
+          Tc: find("torsion"),
+          Vrx: input.Vx,
+          Vcx: find("vx"),
+          Vry: input.Vy,
+          Vcy: find("vy"),
+        });
+      } catch (e) {
+        error("HSS torsion interaction", e);
+      }
+    } else {
+      try {
+        report.torsion = openTorsionCheck(shape, material, {
+          ...t,
+          T: t.Tu,
+          FcrNormal: t.FcrNormal ?? 0,
+          FcrShear: t.FcrShear,
+          P: input.P,
+          Mx: report.moments.x,
+          My: report.moments.y,
+          Vx: input.Vx,
+          Vy: input.Vy,
+          method,
+        });
+      } catch (e) {
+        error("Open-section torsion", e);
+      }
+    }
+  }
   const ratios = [
+    ...(report.torsion ? [{ ratio: report.torsion.ratio, name: "H3.3 torsion combined stress" }] : []),
     ...report.checks.map((c) => ({ ratio: c.ratio, name: `${c.label} · ${c.result.governing}` })),
     ...(report.interaction ? [{ ratio: report.interaction.ratio, name: `Eq. ${report.interaction.equation}` }] : []),
   ];
