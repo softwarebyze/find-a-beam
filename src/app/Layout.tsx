@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router";
 import { Segmented } from "@/components/ui";
+import { QuickFind } from "./QuickFind";
 import { useSettings, type Theme } from "./settings";
 
 const NAV = [
@@ -51,6 +52,7 @@ export function Layout() {
             ))}
           </nav>
           <div className="flex shrink-0 items-center gap-2">
+            <QuickFind />
             <Segmented size="sm" ariaLabel="Design method" value={method} onChange={setMethod} options={[{ value: "LRFD", label: "LRFD" }, { value: "ASD", label: "ASD" }]} />
             <Segmented size="sm" ariaLabel="Units" value={units} onChange={setUnits} options={[{ value: "US", label: "US" }, { value: "SI", label: "SI" }]} />
             <button
