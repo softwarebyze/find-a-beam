@@ -114,6 +114,14 @@ export interface TensionResult extends StrengthResult {
 }
 
 export interface FlexureInput {
+  /** F9: true if the stem/web legs are in compression anywhere in the unbraced segment. */
+  stemInCompression?: boolean;
+  /** F10: continuous lateral-torsional restraint permits geometric-axis design. */
+  continuousLateralRestraint?: boolean;
+  /** F10: compression at the toe perpendicular to the geometric bending axis; default true. */
+  toeInCompression?: boolean;
+  /** F10.2(2)(ii): restraint at the point of maximum moment only. */
+  restraintAtMaxMoment?: boolean;
   axis: "major" | "minor";
   /** Laterally unbraced length, in. */
   Lb: number;
@@ -122,6 +130,8 @@ export interface FlexureInput {
 }
 
 export interface ShearInput {
+  /** G5: distance from maximum to zero shear, in.; omitted uses the long-length lower bound. */
+  Lv?: number;
   axis: "major" | "minor";
   /** Clear distance between transverse stiffeners, in. (omit for unstiffened) */
   a?: number;
@@ -133,6 +143,12 @@ export interface CompressionInput {
   Lcy: number;
   /** Torsional effective length, in.; defaults to max(Lcx, Lcy) */
   Lcz?: number;
+  /** §E5 opt-in. Lcx = Lcy = physical work-point length L (K is not applied). */
+  singleAngle?: { connectedLeg: "long" | "short"; trussWeb?: boolean };
+  /** §E6 intermediate connector spacing a, in.; omitted = ideal composite action. */
+  connectorSpacing?: number;
+  /** §E6 intermediate connectors; end connections must resist slip in either case. */
+  connectorType?: "snug" | "welded-pretensioned";
 }
 
 export interface TensionInput {

@@ -1,88 +1,58 @@
-/** Flexural strength — AISC 360-22 Chapter F. */
-import { E } from "@/data/materials";
-import { familyOf, req } from "@/data/shapes";
+/** AISC 360-22 Chapter F. Pure functions; kip, in., ksi, kip-in. */
+import { E, type Material } from "@/data/materials";
+import { familyOf, req, type Shape } from "@/data/shapes";
 import { classifyFlexure } from "./classify-flexure";
-import { governingOf, RESISTANCE } from "./common";
-import { UnsupportedError, type CalcStep, type FlexureFn, type FlexureResult, type LimitState } from "./types";
+import type { FlexureFn, FlexureInput } from "./types";
+import { iShapeFlexure } from "./flexure/i-shapes";
+import { hssFlexure } from "./flexure/hss";
+import { singleAngleFlexure, teeFlexure } from "./flexure/angles-tees";
+import { step, validateInput, type FlexureContext } from "./flexure/shared";
 
-export const flexuralStrength: FlexureFn = (shape, mat, { axis, Lb, Cb = 1 }) => {
-  if (familyOf(shape) !== "i-shape") throw new UnsupportedError(`Flexure for ${shape.type} shapes is not implemented yet`);
-  const { Fy } = mat;
-  const classification = classifyFlexure(shape, mat, axis);
-  const flange = classification.elements[0]!;
-  const warnings: string[] = [];
-  const limitStates: LimitState[] = [];
-  const steps: CalcStep[] = [];
-
-  if (axis === "minor") {
-    const Zy = req(shape, "Zy"), Sy = req(shape, "Sy");
-    const Mp = Math.min(Fy * Zy, 1.6 * Fy * Sy);
-    limitStates.push({ id: "Y", name: "Yielding", ref: "§F6.1", nominal: Mp, steps: [
-      { label: "Plastic moment", symbol: "M{n}", expr: "F{y}Z{y} ≤ 1.6F{y}S{y}", value: Mp, quantity: "moment", ref: "Eq. F6-1" },
-    ] });
-    if (flange.cls !== "compact") {
-      const lam = flange.lambda, lp = flange.lambdaP!, lr = flange.lambdaR;
-      const Mn = flange.cls === "noncompact"
-        ? Mp - (Mp - 0.7 * Fy * Sy) * ((lam - lp) / (lr - lp))
-        : ((0.69 * E) / lam ** 2) * Sy;
-      limitStates.push({ id: "FLB", name: "Flange local buckling", ref: "§F6.2", nominal: Mn, steps: [
-        { label: "Flange local buckling", symbol: "M{n}", value: Mn, quantity: "moment", ref: flange.cls === "noncompact" ? "Eq. F6-2" : "Eq. F6-3" },
-      ] });
-    }
-    const gov = governingOf(limitStates);
-    return { kind: "flexure", quantity: "moment", nominal: gov.nominal, ...RESISTANCE.flexure, governing: gov.id, limitStates,
-      section: "§F6 I-shaped members bent about their minor axis", steps, warnings, classification, Mp } satisfies FlexureResult;
+export const flexuralStrength: FlexureFn = (shape, material, input) => {
+  validateInput(material.Fy, input);
+  const classification = classifyFlexure(shape, material, input.axis);
+  const c: FlexureContext = { classification, limitStates: [], warnings: [], steps: [
+    step("Specified yield stress", "F{y}", material.Fy, "stress", "§F1"),
+    step("Modulus of elasticity", "E", E, "stress", "§B4"),
+    step("Elastic section modulus about the geometric bending axis", input.axis === "major" ? "S{x}" : "S{y}", req(shape, input.axis === "major" ? "Sx" : "Sy"), "modulus", "§F1"),
+    step("Plastic section modulus about the geometric bending axis", input.axis === "major" ? "Z{x}" : "Z{y}", req(shape, input.axis === "major" ? "Zx" : "Zy"), "modulus", "§F1"),
+    step("Laterally unbraced length", "L{b}", input.Lb, "span", "§F1"),
+    step("Moment gradient modification factor", "C{b}", input.Cb ?? 1, "ratio", "Eq. F1-1"),
+    ...classification.elements.flatMap(e => [step(`${e.element} width-to-thickness ratio (${e.cls})`, e.symbol, e.lambda, "ratio", e.ref), step(`${e.element} compact limit`, "λ{p}", e.lambdaP!, "ratio", e.ref), step(`${e.element} slender limit`, "λ{r}", e.lambdaR, "ratio", e.ref)]),
+  ] };
+  switch (familyOf(shape)) {
+    case "i-shape": case "channel": return iShapeFlexure(shape, material, input, c);
+    case "hss-rect": case "hss-round": case "pipe": return hssFlexure(shape, material, input, c);
+    case "tee": case "double-angle": return teeFlexure(shape, material, input, c);
+    case "angle": return singleAngleFlexure(shape, material, input, c);
   }
-
-  if (classification.elements[1]!.cls !== "compact") throw new UnsupportedError("Noncompact/slender webs (§F4/F5) are not implemented yet");
-  const Zx = req(shape, "Zx"), Sx = req(shape, "Sx"), ry = req(shape, "ry"), rts = req(shape, "rts"), J = req(shape, "J"), ho = req(shape, "ho");
-  const Mp = Fy * Zx;
-  const c = 1;
-  const Lp = 1.76 * ry * Math.sqrt(E / Fy);
-  const jc = (J * c) / (Sx * ho);
-  const Lr = 1.95 * rts * (E / (0.7 * Fy)) * Math.sqrt(jc + Math.sqrt(jc ** 2 + 6.76 * ((0.7 * Fy) / E) ** 2));
-  steps.push(
-    { label: "Plastic moment", symbol: "M{p}", expr: "F{y}Z{x}", value: Mp, quantity: "moment", ref: "Eq. F2-1" },
-    { label: "Limiting unbraced length for yielding", symbol: "L{p}", expr: "1.76 r{y} √(E/F{y})", value: Lp, quantity: "span", ref: "Eq. F2-5" },
-    { label: "Limiting unbraced length for inelastic LTB", symbol: "L{r}", expr: "1.95 r{ts} (E/0.7F{y}) √(Jc/S{x}h{o} + √((Jc/S{x}h{o})² + 6.76(0.7F{y}/E)²))", value: Lr, quantity: "span", ref: "Eq. F2-6" },
-  );
-
-  limitStates.push({ id: "Y", name: "Yielding", ref: "§F2.1", nominal: Mp, steps: [{ label: "Nominal flexural strength", symbol: "M{n}", expr: "M{p} = F{y}Z{x}", value: Mp, quantity: "moment", ref: "Eq. F2-1" }] });
-
-  if (Lb > Lp) {
-    let Mn: number;
-    const ltbSteps: CalcStep[] = [{ label: "Unbraced length", symbol: "L{b}", value: Lb, quantity: "span" }, { label: "Lateral-torsional buckling modification factor", symbol: "C{b}", value: Cb, quantity: "ratio", ref: "Eq. F1-1" }];
-    if (Lb <= Lr) {
-      Mn = Math.min(Mp, Cb * (Mp - (Mp - 0.7 * Fy * Sx) * ((Lb - Lp) / (Lr - Lp))));
-      ltbSteps.push({ label: "Inelastic LTB (L{p} < L{b} ≤ L{r})", symbol: "M{n}", expr: "C{b}[M{p} − (M{p} − 0.7F{y}S{x})((L{b} − L{p})/(L{r} − L{p}))] ≤ M{p}", value: Mn, quantity: "moment", ref: "Eq. F2-2" });
-    } else {
-      const s = Lb / rts;
-      const Fcr = ((Cb * Math.PI ** 2 * E) / s ** 2) * Math.sqrt(1 + 0.078 * jc * s ** 2);
-      Mn = Math.min(Mp, Fcr * Sx);
-      ltbSteps.push(
-        { label: "Critical stress", symbol: "F{cr}", expr: "(C{b}π²E/(L{b}/r{ts})²) √(1 + 0.078 (Jc/S{x}h{o})(L{b}/r{ts})²)", value: Fcr, quantity: "stress", ref: "Eq. F2-4" },
-        { label: "Elastic LTB (L{b} > L{r})", symbol: "M{n}", expr: "F{cr}S{x} ≤ M{p}", value: Mn, quantity: "moment", ref: "Eq. F2-3" },
-      );
-    }
-    limitStates.push({ id: "LTB", name: "Lateral-torsional buckling", ref: "§F2.2", nominal: Mn, steps: ltbSteps });
-  }
-
-  let section = "§F2 Doubly symmetric compact I-shaped members bent about their major axis";
-  if (flange.cls !== "compact") {
-    section = "§F3 Doubly symmetric I-shaped members with compact webs and noncompact or slender flanges";
-    const lam = flange.lambda, lp = flange.lambdaP!, lr = flange.lambdaR;
-    let Mn: number;
-    if (flange.cls === "noncompact") {
-      Mn = Mp - (Mp - 0.7 * Fy * Sx) * ((lam - lp) / (lr - lp));
-    } else {
-      const kc = Math.min(0.76, Math.max(0.35, 4 / Math.sqrt(req(shape, "h/tw"))));
-      Mn = (0.9 * E * kc * Sx) / lam ** 2;
-    }
-    limitStates.push({ id: "FLB", name: "Compression flange local buckling", ref: "§F3.2", nominal: Mn, steps: [
-      { label: "Flange local buckling", symbol: "M{n}", value: Mn, quantity: "moment", ref: flange.cls === "noncompact" ? "Eq. F3-1" : "Eq. F3-2" },
-    ] });
-  }
-
-  const gov = governingOf(limitStates);
-  return { kind: "flexure", quantity: "moment", nominal: gov.nominal, ...RESISTANCE.flexure, governing: gov.id, limitStates, section, steps, warnings, classification, Mp, Lp, Lr };
 };
+
+/** Eq. F1-1. Moments may have either sign; all four are used as absolute values.
+ * Zero demand returns 1.0. Mmax must bound all three sampled moments. */
+export function cbFromMoments(Mmax: number, MA: number, MB: number, MC: number): number {
+  const vals = [Mmax, MA, MB, MC].map(Math.abs);
+  if (!vals.every(Number.isFinite)) throw new RangeError("Moment samples must be finite");
+  const [max, a, b, c] = vals as [number, number, number, number];
+  if (Math.max(a, b, c) > max) throw new RangeError("Mmax must be at least the magnitude of each quarter-point moment");
+  if (max === 0) return 1;
+  return 12.5 / (2.5 + 3 * a / max + 4 * b / max + 3 * c / max);
+}
+export interface LtbCurveInput extends Omit<FlexureInput, "Lb"> {
+  /** Maximum length in inches. */
+  Lmax: number;
+  /** Number of uniformly spaced samples, including 0 and Lmax; default 81. */
+  n?: number;
+}
+export interface LtbCurvePoint { Lb: number; Mn: number }
+/** Nominal flexural strength versus Lb, including all local limit states.
+ * Exact Lp/Lr samples are inserted when they fall within [0,Lmax]. */
+export function ltbCurve(shape: Shape, material: Material, input: LtbCurveInput): LtbCurvePoint[] {
+  const { Lmax, n = 81, ...rest } = input;
+  if (!Number.isFinite(Lmax) || Lmax < 0) throw new RangeError("Lmax must be finite and nonnegative");
+  if (!Number.isInteger(n) || n < 2 || n > 10000) throw new RangeError("n must be an integer between 2 and 10000");
+  const base = flexuralStrength(shape, material, { ...rest, Lb: 0 });
+  const lengths = new Set(Array.from({ length: n }, (_, i) => Lmax * i / (n - 1)));
+  for (const bp of [base.Lp, base.Lr]) if (bp !== undefined && bp >= 0 && bp <= Lmax) lengths.add(bp);
+  return [...lengths].sort((a, b) => a - b).map(Lb => ({ Lb, Mn: flexuralStrength(shape, material, { ...rest, Lb }).nominal }));
+}
