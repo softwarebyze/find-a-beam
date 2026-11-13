@@ -2,8 +2,20 @@ import { describe, expect, it } from "vitest";
 import { materialById } from "@/data/materials";
 import { findShape } from "@/data/shapes";
 import {
-  columnFamilyById, columnFamilyOf, equivalentLc, evaluateColumn, governingAxial, leastR, lightestPerGroup, nominalGroup, nominalGroups,
-  searchColumns, strengthCurve, strengthTable, tableLengths, transitionSlenderness,
+  columnFamilyById,
+  columnFamilyOf,
+  equivalentLc,
+  evaluateColumn,
+  governingAxial,
+  leastR,
+  lightestPerGroup,
+  nominalGroup,
+  nominalGroups,
+  searchColumns,
+  strengthCurve,
+  strengthTable,
+  tableLengths,
+  transitionSlenderness,
 } from "../column-design";
 import { END_CONDITIONS, parseK, resolveK, serializeK } from "../effective-length";
 import { applyPatch, encodeNum, parseNum } from "../url-state";
@@ -15,7 +27,12 @@ const shape = (n: string) => findShape(n)!;
 describe("Commentary Table C-A-7.1 effective-length factors", () => {
   it("lists the six idealized cases with theoretical and recommended K", () => {
     expect(END_CONDITIONS.map((c) => [c.id, c.theoretical, c.recommended])).toEqual([
-      ["a", 0.5, 0.65], ["b", 0.7, 0.8], ["c", 1.0, 1.0], ["d", 1.0, 1.2], ["e", 2.0, 2.1], ["f", 2.0, 2.0],
+      ["a", 0.5, 0.65],
+      ["b", 0.7, 0.8],
+      ["c", 1.0, 1.0],
+      ["d", 1.0, 1.2],
+      ["e", 2.0, 2.1],
+      ["f", 2.0, 2.0],
     ]);
   });
   it("parses and serializes K selections", () => {
@@ -67,20 +84,37 @@ describe("governing axial combination (ASCE/SEI 7-22)", () => {
 describe("column search", () => {
   const L = { Lcx: 168, Lcy: 168, Lcz: 168 };
   it("ranks W14 columns lightest-first and flags the lightest per depth", () => {
-    const { candidates } = searchColumns({ family: W, material: A992, lengths: L, Pr: 500, method: "LRFD", groups: ["W14", "W12"] });
+    const { candidates } = searchColumns({
+      family: W,
+      material: A992,
+      lengths: L,
+      Pr: 500,
+      method: "LRFD",
+      groups: ["W14", "W12"],
+    });
     expect(candidates.length).toBeGreaterThan(20);
-    for (let i = 1; i < candidates.length; i++) expect(candidates[i]!.shape.W as number).toBeGreaterThanOrEqual(candidates[i - 1]!.shape.W as number);
+    for (let i = 1; i < candidates.length; i++)
+      expect(candidates[i]!.shape.W as number).toBeGreaterThanOrEqual(candidates[i - 1]!.shape.W as number);
     const lightest = lightestPerGroup(candidates);
     expect(lightest.size).toBe(2);
     for (const label of lightest) {
       const c = candidates.find((x) => x.shape.label === label)!;
       expect(c.pass).toBe(true);
-      const lighterSameGroup = candidates.filter((x) => x.group === c.group && x.pass && (x.shape.W as number) < (c.shape.W as number));
+      const lighterSameGroup = candidates.filter(
+        (x) => x.group === c.group && x.pass && (x.shape.W as number) < (c.shape.W as number),
+      );
       expect(lighterSameGroup).toHaveLength(0);
     }
   });
   it("y-axis governs for W-shapes with equal lengths", () => {
-    const { candidates } = searchColumns({ family: W, material: A992, lengths: L, Pr: 100, method: "LRFD", groups: ["W10"] });
+    const { candidates } = searchColumns({
+      family: W,
+      material: A992,
+      lengths: L,
+      Pr: 100,
+      method: "LRFD",
+      groups: ["W10"],
+    });
     expect(candidates.every((c) => c.axis === "y")).toBe(true);
   });
 });
@@ -130,12 +164,14 @@ describe("URL state helpers", () => {
   });
 });
 
-
 describe("principal-axis and connection input integration", () => {
   it("reports the engine's governing axis for unequal effective lengths", () => {
     const c = evaluateColumn(shape("W14X90"), A992, { Lcx: 600, Lcy: 12, Lcz: 12 }, 100, "LRFD");
     expect("result" in c).toBe(true);
-    if ("result" in c) { expect(c.result.governing).toBe("FB-x"); expect(c.axis).toBe("x"); }
+    if ("result" in c) {
+      expect(c.result.governing).toBe("FB-x");
+      expect(c.axis).toBe("x");
+    }
   });
   it("uses the angle's principal w and z radii in the table-entry equivalent length", () => {
     const s = shape("L4X4X1/2");
@@ -145,10 +181,18 @@ describe("principal-axis and connection input integration", () => {
     if (!("result" in c)) throw new Error(c.message);
     expect(c.slx).toBeCloseTo(120 / rw);
     expect(c.sly).toBeCloseTo(12 / rz);
-    expect(equivalentLc(s, { Lcx: 120, Lcy: 12, Lcz: 12 })).toBeCloseTo(Math.max(120 * leastR(s) / rw, 12 * leastR(s) / rz));
+    expect(equivalentLc(s, { Lcx: 120, Lcy: 12, Lcz: 12 })).toBeCloseTo(
+      Math.max((120 * leastR(s)) / rw, (12 * leastR(s)) / rz),
+    );
   });
   it("catches incompatible E5 settings and skips the section", () => {
-    const c = evaluateColumn(shape("W14X90"), A992, { Lcx: 120, Lcy: 120, Lcz: 120, singleAngle: { connectedLeg: "long" } }, 1, "LRFD");
+    const c = evaluateColumn(
+      shape("W14X90"),
+      A992,
+      { Lcx: 120, Lcy: 120, Lcz: 120, singleAngle: { connectedLeg: "long" } },
+      1,
+      "LRFD",
+    );
     expect("message" in c).toBe(true);
   });
 });

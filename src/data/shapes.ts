@@ -13,8 +13,7 @@ export interface Shape {
   [prop: string]: number | string | boolean | undefined;
 }
 
-export type ShapeType =
-  | "W" | "M" | "S" | "HP" | "C" | "MC" | "L" | "WT" | "MT" | "ST" | "2L" | "HSS" | "PIPE";
+export type ShapeType = "W" | "M" | "S" | "HP" | "C" | "MC" | "L" | "WT" | "MT" | "ST" | "2L" | "HSS" | "PIPE";
 
 /** Geometric family — what the design engine and drawings dispatch on. */
 export type ShapeFamily =
@@ -31,13 +30,26 @@ export const SHAPES: readonly Shape[] = raw as Shape[];
 
 export function familyOf(s: { type: ShapeType; OD?: unknown }): ShapeFamily {
   switch (s.type) {
-    case "W": case "M": case "S": case "HP": return "i-shape";
-    case "C": case "MC": return "channel";
-    case "L": return "angle";
-    case "WT": case "MT": case "ST": return "tee";
-    case "2L": return "double-angle";
-    case "PIPE": return "pipe";
-    case "HSS": return s.OD !== undefined ? "hss-round" : "hss-rect";
+    case "W":
+    case "M":
+    case "S":
+    case "HP":
+      return "i-shape";
+    case "C":
+    case "MC":
+      return "channel";
+    case "L":
+      return "angle";
+    case "WT":
+    case "MT":
+    case "ST":
+      return "tee";
+    case "2L":
+      return "double-angle";
+    case "PIPE":
+      return "pipe";
+    case "HSS":
+      return s.OD !== undefined ? "hss-round" : "hss-rect";
   }
 }
 
@@ -109,7 +121,17 @@ export const SHAPE_TYPES: { type: ShapeType; name: string; family: ShapeFamily |
 
 /** Manual Part 1 table numbers for each family. */
 export const MANUAL_TABLE: Record<ShapeType, string> = {
-  W: "Table 1-1", M: "Table 1-2", S: "Table 1-3", HP: "Table 1-4", C: "Table 1-5", MC: "Table 1-6",
-  L: "Table 1-7", WT: "Table 1-8", MT: "Table 1-9", ST: "Table 1-10", "2L": "Table 1-15",
-  HSS: "Tables 1-11 to 1-13", PIPE: "Table 1-14",
+  W: "Table 1-1",
+  M: "Table 1-2",
+  S: "Table 1-3",
+  HP: "Table 1-4",
+  C: "Table 1-5",
+  MC: "Table 1-6",
+  L: "Table 1-7",
+  WT: "Table 1-8",
+  MT: "Table 1-9",
+  ST: "Table 1-10",
+  "2L": "Table 1-15",
+  HSS: "Tables 1-11 to 1-13",
+  PIPE: "Table 1-14",
 };

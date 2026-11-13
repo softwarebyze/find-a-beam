@@ -1,9 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { findShape, SHAPES, type Shape } from "@/data/shapes";
 import {
-  availableProps, bestWorst, categoryOf, commonScale, efficiency, EFFICIENCY, emphasized, fmtExact, matchesFilters, matchesType,
-  neighbours, nextSort, noteText, parseCompareSlugs, parseExplorerState, parseExplorerType, PRESETS, queryShapes, searchTerms,
-  seriesKey, seriesOf, serializeExplorerState, sortShapes, toCSV, toQueryString, type ExplorerState,
+  availableProps,
+  bestWorst,
+  categoryOf,
+  commonScale,
+  efficiency,
+  EFFICIENCY,
+  emphasized,
+  fmtExact,
+  matchesFilters,
+  matchesType,
+  neighbours,
+  nextSort,
+  noteText,
+  parseCompareSlugs,
+  parseExplorerState,
+  parseExplorerType,
+  PRESETS,
+  queryShapes,
+  searchTerms,
+  seriesKey,
+  seriesOf,
+  serializeExplorerState,
+  sortShapes,
+  toCSV,
+  toQueryString,
+  type ExplorerState,
 } from "../logic";
 
 const s = (label: string): Shape => {
@@ -142,8 +165,15 @@ describe("Manual emphasis", () => {
 describe("URL state", () => {
   it("round-trips the full explorer state", () => {
     const st: ExplorerState = {
-      type: "W", q: "w18", filters: [{ key: "Zx", min: 50, max: 120 }, { key: "d", max: 18.5 }],
-      sort: { key: "Zx", dir: "desc" }, cols: ["W", "Zx", "Ix"], cmp: ["W18X50", "HSS6X6X1_2"],
+      type: "W",
+      q: "w18",
+      filters: [
+        { key: "Zx", min: 50, max: 120 },
+        { key: "d", max: 18.5 },
+      ],
+      sort: { key: "Zx", dir: "desc" },
+      cols: ["W", "Zx", "Ix"],
+      cmp: ["W18X50", "HSS6X6X1_2"],
     };
     const qs = toQueryString(serializeExplorerState(st));
     expect(qs).toContain("f=Zx:50:120");
@@ -176,7 +206,9 @@ describe("formatting, CSV and compare helpers", () => {
   });
 
   it("exports the current view in display units", () => {
-    const csv = toCSV([s("W18X50")], ["W", "d", "Ix"], "SI").trim().split("\n");
+    const csv = toCSV([s("W18X50")], ["W", "d", "Ix"], "SI")
+      .trim()
+      .split("\n");
     expect(csv[0]).toBe("Shape,W (kg/m),d (mm),Ix (10⁶ mm⁴)");
     expect(csv[1]!.startsWith("W18X50,74.4")).toBe(true);
     expect(toCSV([s("HSS6X6X1/2")], ["W"], "US").split("\n")[1]).toBe("HSS6X6X1/2,35.24");
@@ -192,8 +224,14 @@ describe("formatting, CSV and compare helpers", () => {
   it("computes efficiency in display units", () => {
     const zw = EFFICIENCY.find((m) => m.id === "Zx/W")!;
     expect(efficiency(s("W18X50"), zw, "US")).toBeCloseTo(101 / 50, 6);
-    expect(efficiency(s("W18X50"), zw, "SI")).toBeCloseTo((101 * 25.4 ** 3 / 1e3) / (50 * 1.48816394), 6);
-    expect(efficiency(s("W18X50"), EFFICIENCY.find((m) => m.id === "ry/rx")!, "SI")).toBeCloseTo(1.65 / 7.38, 6);
+    expect(efficiency(s("W18X50"), zw, "SI")).toBeCloseTo((101 * 25.4 ** 3) / 1e3 / (50 * 1.48816394), 6);
+    expect(
+      efficiency(
+        s("W18X50"),
+        EFFICIENCY.find((m) => m.id === "ry/rx")!,
+        "SI",
+      ),
+    ).toBeCloseTo(1.65 / 7.38, 6);
   });
 
   it("chooses a common scale bounded by the largest shape", () => {

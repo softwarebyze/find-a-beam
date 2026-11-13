@@ -80,12 +80,33 @@
   color-scheme: dark;
 }
 
-html { background: var(--canvas); color: var(--ink); }
-body { font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiased; }
-.num { font-variant-numeric: tabular-nums; }
+html {
+  background: var(--canvas);
+  color: var(--ink);
+}
+body {
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
 
 @media print {
-  .no-print { display: none !important; }
-  html, body { background: white !important; }
-  :root, .dark { --canvas: #fff; --surface: #fff; --surface-2: #fff; --ink: #000; --muted: #333; --line: #bbb; }
+  .no-print {
+    display: none !important;
+  }
+  html,
+  body {
+    background: white !important;
+  }
+  :root,
+  .dark {
+    --canvas: #fff;
+    --surface: #fff;
+    --surface-2: #fff;
+    --ink: #000;
+    --muted: #333;
+    --line: #bbb;
+  }
 }

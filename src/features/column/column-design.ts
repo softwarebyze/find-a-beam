@@ -3,7 +3,14 @@
  * Pure functions, engine units (kip, in., ksi). No React.
  */
 import { applyCombination, combinationsFor, type Combination, type LoadSet } from "@/analysis/load-combinations";
-import { available, compressionStrength, UnsupportedError, type CompressionInput, type CompressionResult, type DesignMethod } from "@/aisc";
+import {
+  available,
+  compressionStrength,
+  UnsupportedError,
+  type CompressionInput,
+  type CompressionResult,
+  type DesignMethod,
+} from "@/aisc";
 import { E, preferredMaterial, type Material } from "@/data/materials";
 import { familyOf, num, SHAPES, type Shape, type ShapeFamily } from "@/data/shapes";
 
@@ -23,16 +30,35 @@ const isSquare = (s: Shape) => familyOf(s) === "hss-rect" && num(s, "Ht") === nu
 export const COLUMN_FAMILIES: readonly ColumnFamily[] = [
   { id: "W", label: "W-shapes", table: "Manual Table 4-1a", family: "i-shape", match: (s) => s.type === "W" },
   { id: "HP", label: "HP-shapes", table: "Manual Table 4-2", family: "i-shape", match: (s) => s.type === "HP" },
-  { id: "HSS-rect", label: "Rectangular HSS", table: "Manual Table 4-3", family: "hss-rect", match: (s) => familyOf(s) === "hss-rect" && !isSquare(s) },
+  {
+    id: "HSS-rect",
+    label: "Rectangular HSS",
+    table: "Manual Table 4-3",
+    family: "hss-rect",
+    match: (s) => familyOf(s) === "hss-rect" && !isSquare(s),
+  },
   { id: "HSS-square", label: "Square HSS", table: "Manual Table 4-4", family: "hss-rect", match: isSquare },
-  { id: "HSS-round", label: "Round HSS", table: "Manual Table 4-5", family: "hss-round", match: (s) => familyOf(s) === "hss-round" },
+  {
+    id: "HSS-round",
+    label: "Round HSS",
+    table: "Manual Table 4-5",
+    family: "hss-round",
+    match: (s) => familyOf(s) === "hss-round",
+  },
   { id: "PIPE", label: "Pipe", table: "Manual Table 4-6", family: "pipe", match: (s) => s.type === "PIPE" },
   { id: "WT", label: "WT-shapes", table: "Manual Table 4-7", family: "tee", match: (s) => s.type === "WT" },
-  { id: "2L", label: "Double angles", table: "Manual Table 4-9", family: "double-angle", match: (s) => s.type === "2L" },
+  {
+    id: "2L",
+    label: "Double angles",
+    table: "Manual Table 4-9",
+    family: "double-angle",
+    match: (s) => s.type === "2L",
+  },
   { id: "L", label: "Single angles", table: "Manual Table 4-11", family: "angle", match: (s) => s.type === "L" },
 ];
 
-export const columnFamilyById = (id: string | null | undefined): ColumnFamily | undefined => COLUMN_FAMILIES.find((f) => f.id === id);
+export const columnFamilyById = (id: string | null | undefined): ColumnFamily | undefined =>
+  COLUMN_FAMILIES.find((f) => f.id === id);
 
 export function columnFamilyOf(s: Shape): ColumnFamily | undefined {
   return COLUMN_FAMILIES.find((f) => f.match(s));
@@ -76,7 +102,10 @@ export function leastR(s: Shape): number {
 export const transitionSlenderness = (Fy: number) => 4.71 * Math.sqrt(E / Fy);
 
 /** Governing compression combination (largest compression, compression positive). ASCE/SEI 7-22 §2.3.1 / §2.4.1. */
-export function governingAxial(loads: LoadSet, method: DesignMethod): { combo: Combination; value: number; all: { combo: Combination; value: number }[] } {
+export function governingAxial(
+  loads: LoadSet,
+  method: DesignMethod,
+): { combo: Combination; value: number; all: { combo: Combination; value: number }[] } {
   const all = combinationsFor(method).map((combo) => ({ combo, value: applyCombination(loads, combo) }));
   const best = all.reduce((a, b) => (b.value > a.value ? b : a));
   return { ...best, all };
@@ -112,7 +141,11 @@ export interface ColumnSearch {
 }
 
 /** Try the engine; UnsupportedError (and missing-property errors) are reported instead of thrown. */
-export function tryCompression(shape: Shape, mat: Material, L: ColumnLengths): { ok: true; result: CompressionResult } | { ok: false; message: string } {
+export function tryCompression(
+  shape: Shape,
+  mat: Material,
+  L: ColumnLengths,
+): { ok: true; result: CompressionResult } | { ok: false; message: string } {
   try {
     const result = compressionStrength(shape, mat, L);
     if (!Number.isFinite(result.nominal)) return { ok: false, message: "Engine returned a non-finite strength" };
@@ -123,19 +156,46 @@ export function tryCompression(shape: Shape, mat: Material, L: ColumnLengths): {
   }
 }
 
-export function evaluateColumn(shape: Shape, mat: Material, L: ColumnLengths, Pr: number, method: DesignMethod): ColumnCandidate | { shape: Shape; message: string } {
+export function evaluateColumn(
+  shape: Shape,
+  mat: Material,
+  L: ColumnLengths,
+  Pr: number,
+  method: DesignMethod,
+): ColumnCandidate | { shape: Shape; message: string } {
   const r = tryCompression(shape, mat, L);
   if (!r.ok) return { shape, message: r.message };
   const avail = available(r.result, method);
-  const rx = shape.type === "L" ? Math.sqrt((num(shape, "Iw") ?? Infinity) / (num(shape, "A") ?? 1)) : num(shape, "rx") ?? Infinity;
+  const rx =
+    shape.type === "L"
+      ? Math.sqrt((num(shape, "Iw") ?? Infinity) / (num(shape, "A") ?? 1))
+      : (num(shape, "rx") ?? Infinity);
   const ry = (shape.type === "L" ? num(shape, "rz") : num(shape, "ry")) ?? Infinity;
-  const slx = L.Lcx / rx, sly = L.Lcy / ry;
+  const slx = L.Lcx / rx,
+    sly = L.Lcy / ry;
   const ratio = avail > 0 ? Math.max(0, Pr) / avail : Infinity;
-  return { shape, result: r.result, available: avail, ratio, pass: ratio <= 1 + 1e-9, axis: r.result.governing === "FB-x" ? "x" : r.result.governing === "FB-y" ? "y" : slx > sly ? "x" : "y", slx, sly, group: nominalGroup(shape) };
+  return {
+    shape,
+    result: r.result,
+    available: avail,
+    ratio,
+    pass: ratio <= 1 + 1e-9,
+    axis: r.result.governing === "FB-x" ? "x" : r.result.governing === "FB-y" ? "y" : slx > sly ? "x" : "y",
+    slx,
+    sly,
+    group: nominalGroup(shape),
+  };
 }
 
 /** Evaluate every shape in the family; candidates are sorted lightest-first (ties → higher capacity). */
-export function searchColumns(opts: { family: ColumnFamily; material: Material; lengths: ColumnLengths; Pr: number; method: DesignMethod; groups?: string[] }): ColumnSearch {
+export function searchColumns(opts: {
+  family: ColumnFamily;
+  material: Material;
+  lengths: ColumnLengths;
+  Pr: number;
+  method: DesignMethod;
+  groups?: string[];
+}): ColumnSearch {
   const { family, material, lengths, Pr, method, groups } = opts;
   const pool = SHAPES.filter((s) => family.match(s) && (!groups?.length || groups.includes(nominalGroup(s))));
   const candidates: ColumnCandidate[] = [];
@@ -192,21 +252,38 @@ export interface StrengthTableRow {
  * (Lcx = Lcy = Lcz = Lc) — the basis of the Manual Part 4 column tables, which tabulate
  * against the least radius of gyration.
  */
-export function strengthTable(shape: Shape, mat: Material, lengths: number[], options: Partial<CompressionInput> = {}): StrengthTableRow[] {
+export function strengthTable(
+  shape: Shape,
+  mat: Material,
+  lengths: number[],
+  options: Partial<CompressionInput> = {},
+): StrengthTableRow[] {
   const rows: StrengthTableRow[] = [];
   for (const Lc of lengths) {
     const r = tryCompression(shape, mat, { ...options, Lcx: Lc, Lcy: Lc, Lcz: Lc });
     if (!r.ok) continue;
     rows.push({
-      Lc, Pn: r.result.nominal, phiPn: available(r.result, "LRFD"), PnOmega: available(r.result, "ASD"),
-      slenderness: r.result.slenderness, governing: r.result.governing, over200: r.result.slenderness > 200 + 1e-9,
+      Lc,
+      Pn: r.result.nominal,
+      phiPn: available(r.result, "LRFD"),
+      PnOmega: available(r.result, "ASD"),
+      slenderness: r.result.slenderness,
+      governing: r.result.governing,
+      over200: r.result.slenderness > 200 + 1e-9,
     });
   }
   return rows;
 }
 
 /** Available-strength curve for charting (engine units). */
-export function strengthCurve(shape: Shape, mat: Material, method: DesignMethod, maxLc: number, n = 120, options: Partial<CompressionInput> = {}): { x: number; y: number }[] {
+export function strengthCurve(
+  shape: Shape,
+  mat: Material,
+  method: DesignMethod,
+  maxLc: number,
+  n = 120,
+  options: Partial<CompressionInput> = {},
+): { x: number; y: number }[] {
   const pts: { x: number; y: number }[] = [];
   for (let i = 0; i <= n; i++) {
     const Lc = (maxLc * i) / n;

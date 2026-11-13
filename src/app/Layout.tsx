@@ -42,10 +42,12 @@ export function Layout() {
               <NavLink
                 key={n.to}
                 to={n.to}
-                className={({ isActive }) => clsx(
-                  "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition",
-                  isActive ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink",
-                )}
+                className={({ isActive }) =>
+                  clsx(
+                    "whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm transition",
+                    isActive ? "bg-surface-2 font-medium text-ink" : "text-muted hover:text-ink",
+                  )
+                }
               >
                 {n.label}
               </NavLink>
@@ -53,8 +55,26 @@ export function Layout() {
           </nav>
           <div className="flex shrink-0 items-center gap-2">
             <QuickFind />
-            <Segmented size="sm" ariaLabel="Design method" value={method} onChange={setMethod} options={[{ value: "LRFD", label: "LRFD" }, { value: "ASD", label: "ASD" }]} />
-            <Segmented size="sm" ariaLabel="Units" value={units} onChange={setUnits} options={[{ value: "US", label: "US" }, { value: "SI", label: "SI" }]} />
+            <Segmented
+              size="sm"
+              ariaLabel="Design method"
+              value={method}
+              onChange={setMethod}
+              options={[
+                { value: "LRFD", label: "LRFD" },
+                { value: "ASD", label: "ASD" },
+              ]}
+            />
+            <Segmented
+              size="sm"
+              ariaLabel="Units"
+              value={units}
+              onChange={setUnits}
+              options={[
+                { value: "US", label: "US" },
+                { value: "SI", label: "SI" },
+              ]}
+            />
             <button
               type="button"
               title={`Theme: ${theme}`}
@@ -74,9 +94,12 @@ export function Layout() {
       <footer className="no-print border-t border-line">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-faint">
           <span>
-            Shape data: AISC Shapes Database v16.0 (16th Ed. Steel Construction Manual). Design per ANSI/AISC 360-22. For use by qualified engineers; verify all results.
+            Shape data: AISC Shapes Database v16.0 (16th Ed. Steel Construction Manual). Design per ANSI/AISC 360-22.
+            For use by qualified engineers; verify all results.
           </span>
-          <a className="hover:text-ink" href="https://github.com/softwarebyze/find-a-beam">Source</a>
+          <a className="hover:text-ink" href="https://github.com/softwarebyze/find-a-beam">
+            Source
+          </a>
         </div>
       </footer>
     </div>

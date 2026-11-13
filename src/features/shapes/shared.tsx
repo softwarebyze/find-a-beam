@@ -12,7 +12,10 @@ export function PropHeading({ k, units, align = "right" }: { k: string; units: U
   if (!p) return <span>{k}</span>;
   const u = unitLabel(p.quantity, units);
   return (
-    <span className={clsx("flex flex-col leading-tight", align === "right" ? "items-end" : "items-start")} title={`${plainSymbol(p.name)} — ${plainSymbol(p.description)}`}>
+    <span
+      className={clsx("flex flex-col leading-tight", align === "right" ? "items-end" : "items-start")}
+      title={`${plainSymbol(p.name)} — ${plainSymbol(p.description)}`}
+    >
       <Sym s={p.symbol} className="text-[12px] font-semibold normal-case tracking-normal text-ink" />
       <span className="text-[10px] font-normal normal-case tracking-normal text-faint">{u || "\u00a0"}</span>
     </span>
@@ -20,7 +23,17 @@ export function PropHeading({ k, units, align = "right" }: { k: string; units: U
 }
 
 /** Copies `text` on click and briefly confirms. */
-export function CopyButton({ text, label, children, className }: { text: string; label: string; children: ReactNode; className?: string }) {
+export function CopyButton({
+  text,
+  label,
+  children,
+  className,
+}: {
+  text: string;
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     if (!copied) return;
@@ -33,12 +46,24 @@ export function CopyButton({ text, label, children, className }: { text: string;
       aria-label={`Copy ${label}`}
       title={copied ? "Copied" : `Copy ${text}`}
       onClick={() => {
-        void navigator.clipboard?.writeText(text).then(() => setCopied(true), () => undefined);
+        void navigator.clipboard?.writeText(text).then(
+          () => setCopied(true),
+          () => undefined,
+        );
       }}
-      className={clsx("relative rounded px-1 -mx-1 text-right transition hover:bg-accent-soft hover:text-accent focus-visible:outline-2 focus-visible:outline-accent", className)}
+      className={clsx(
+        "relative rounded px-1 -mx-1 text-right transition hover:bg-accent-soft hover:text-accent focus-visible:outline-2 focus-visible:outline-accent",
+        className,
+      )}
     >
       {children}
-      <span aria-live="polite" className={clsx("pointer-events-none absolute -top-5 right-0 rounded bg-ink px-1.5 py-0.5 text-[10px] font-medium text-canvas transition-opacity", copied ? "opacity-100" : "opacity-0")}>
+      <span
+        aria-live="polite"
+        className={clsx(
+          "pointer-events-none absolute -top-5 right-0 rounded bg-ink px-1.5 py-0.5 text-[10px] font-medium text-canvas transition-opacity",
+          copied ? "opacity-100" : "opacity-0",
+        )}
+      >
         {copied ? "Copied" : ""}
       </span>
     </button>
@@ -46,17 +71,37 @@ export function CopyButton({ text, label, children, className }: { text: string;
 }
 
 /** Button-anchored popover panel; closes on outside click and Escape. */
-export function Popover({ label, children, align = "right", panelClassName }: { label: ReactNode; children: (close: () => void) => ReactNode; align?: "left" | "right"; panelClassName?: string }) {
+export function Popover({
+  label,
+  children,
+  align = "right",
+  panelClassName,
+}: {
+  label: ReactNode;
+  children: (close: () => void) => ReactNode;
+  align?: "left" | "right";
+  panelClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); btn.current?.focus(); } };
+    const onDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        btn.current?.focus();
+      }
+    };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
   return (
     <div ref={ref} className="relative">
@@ -71,7 +116,14 @@ export function Popover({ label, children, align = "right", panelClassName }: { 
         {label}
       </button>
       {open && (
-        <div role="dialog" className={clsx("absolute z-30 mt-1 rounded-xl border border-line bg-surface p-3 shadow-xl", align === "right" ? "right-0" : "left-0", panelClassName)}>
+        <div
+          role="dialog"
+          className={clsx(
+            "absolute z-30 mt-1 rounded-xl border border-line bg-surface p-3 shadow-xl",
+            align === "right" ? "right-0" : "left-0",
+            panelClassName,
+          )}
+        >
           {children(() => setOpen(false))}
         </div>
       )}
@@ -92,7 +144,9 @@ export function ButtonLink({ to, children, primary }: { to: string; children: Re
       to={to}
       className={clsx(
         "inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-accent",
-        primary ? "bg-accent text-accent-ink hover:brightness-110" : "border border-line-strong bg-surface text-ink hover:bg-surface-2",
+        primary
+          ? "bg-accent text-accent-ink hover:brightness-110"
+          : "border border-line-strong bg-surface text-ink hover:bg-surface-2",
       )}
     >
       {children}
@@ -101,7 +155,13 @@ export function ButtonLink({ to, children, primary }: { to: string; children: Re
 }
 
 /** Small inline chevron / glyph icons (stroke-based, inherit currentColor). */
-export function Icon({ name, className }: { name: "up" | "down" | "x" | "left" | "right" | "download" | "columns" | "search" | "plus"; className?: string }) {
+export function Icon({
+  name,
+  className,
+}: {
+  name: "up" | "down" | "x" | "left" | "right" | "download" | "columns" | "search" | "plus";
+  className?: string;
+}) {
   const d: Record<typeof name, string> = {
     up: "M4 10l4-4 4 4",
     down: "M4 6l4 4 4-4",
@@ -114,7 +174,16 @@ export function Icon({ name, className }: { name: "up" | "down" | "x" | "left" |
     plus: "M8 3.5v9M3.5 8h9",
   };
   return (
-    <svg viewBox="0 0 16 16" className={clsx("size-4 shrink-0", className)} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 16 16"
+      className={clsx("size-4 shrink-0", className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d={d[name]} />
     </svg>
   );

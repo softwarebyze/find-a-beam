@@ -22,8 +22,19 @@ const PAD = 4;
 /** Geometry never gets less than this share of the available width, however long the labels. */
 const MIN_GEOMETRY_SHARE = 0.4;
 
-export interface SceneLine { x1: number; y1: number; x2: number; y2: number; role: "dim" | "ext" | "axis" }
-export interface SceneArrow { x: number; y: number; dx: number; dy: number }
+export interface SceneLine {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  role: "dim" | "ext" | "axis";
+}
+export interface SceneArrow {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+}
 export interface SceneText {
   x: number;
   y: number;
@@ -49,7 +60,10 @@ export interface Scene {
 }
 
 /** Label size: single-line width, and stacked (two-line) width when the label has a parenthetical. */
-export interface LabelSize { w: number; stackedW?: number }
+export interface LabelSize {
+  w: number;
+  stackedW?: number;
+}
 
 export interface LayoutOptions {
   scale: number;
@@ -72,7 +86,12 @@ export function estimateLabel(sym: string, main: string, paren?: string): LabelS
 
 const isH = (side: Side) => side === "top" || side === "bottom";
 
-interface Rect { x0: number; y0: number; x1: number; y1: number }
+interface Rect {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
 
 export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOptions): Scene {
   const s = o.scale;
@@ -104,18 +123,21 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
     for (const d of sideDims) {
       const m1 = horiz ? X(d.a.x) : Y(d.a.y);
       const m2 = horiz ? X(d.b.x) : Y(d.b.y);
-      const lo = Math.min(m1, m2), hi = Math.max(m1, m2), mid = (lo + hi) / 2;
+      const lo = Math.min(m1, m2),
+        hi = Math.max(m1, m2),
+        mid = (lo + hi) / 2;
       const size = o.label(d);
       const along = hi - lo >= size.w + 2 * ARROW + 6;
       const stacked = !along && !horiz && size.stackedW !== undefined;
-      const w = stacked ? size.stackedW ?? size.w : size.w;
+      const w = stacked ? (size.stackedW ?? size.w) : size.w;
       const h = stacked ? 2 * LINE_H : LINE_H;
       // A short vertical dim puts its label past one of its arrows (interior side first), choosing a
       // spot that no other dim on this side runs an extension line through.
       let labelAt = mid;
       if (!along && !horiz) {
         const others = sideDims.filter((x) => x !== d).flatMap((x) => [Y(x.a.y), Y(x.b.y)]);
-        const below = hi + ARROW + 4 + h / 2, above = lo - ARROW - 4 - h / 2;
+        const below = hi + ARROW + 4 + h / 2,
+          above = lo - ARROW - 4 - h / 2;
         const order = lo - ex.y0 <= ex.y1 - hi ? [below, above, mid] : [above, below, mid];
         labelAt = order.find((c) => others.every((y) => Math.abs(y - c) > h / 2 + 2)) ?? order[0]!;
       }
@@ -126,7 +148,10 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
           : [Math.min(lo - ARROW - 6, labelAt - h / 2), Math.max(hi + ARROW + 6, labelAt + h / 2)];
       const thick = LABEL_GAP + (horiz || along ? LINE_H : w + 2);
       let tier = tiers.find((t) => t.ivs.every(([a, b]) => iv[1] + 4 < a || iv[0] - 4 > b));
-      if (!tier) { tier = { ivs: [], thick: 0, items: [] }; tiers.push(tier); }
+      if (!tier) {
+        tier = { ivs: [], thick: 0, items: [] };
+        tiers.push(tier);
+      }
       tier.ivs.push(iv);
       tier.thick = Math.max(tier.thick, thick);
       tier.items.push({ d, along, stacked, lo, hi, w, labelAt });
@@ -146,12 +171,14 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
         }
         const pt = (t: number): Pt => (horiz ? { x: t, y: pos } : { x: pos, y: t });
         const ax = horiz ? { x: 1, y: 0 } : { x: 0, y: 1 };
-        const pa = pt(lo), pb = pt(hi);
+        const pa = pt(lo),
+          pb = pt(hi);
         if (along) {
           line(pa.x, pa.y, pb.x, pb.y, "dim");
           arrows.push({ x: pa.x, y: pa.y, dx: -ax.x, dy: -ax.y }, { x: pb.x, y: pb.y, dx: ax.x, dy: ax.y });
         } else {
-          const a = pt(lo - ARROW - 5), b = pt(hi + ARROW + 5);
+          const a = pt(lo - ARROW - 5),
+            b = pt(hi + ARROW + 5);
           line(a.x, a.y, b.x, b.y, "dim");
           arrows.push({ x: pa.x, y: pa.y, dx: ax.x, dy: ax.y }, { x: pb.x, y: pb.y, dx: -ax.x, dy: -ax.y });
         }
@@ -173,7 +200,8 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
 
   // ---- inline dims (thicknesses): arrows outside pointing in, label past the far end
   for (const d of dims.filter((x) => x.place === "inline")) {
-    const a = { x: X(d.a.x), y: Y(d.a.y) }, b = { x: X(d.b.x), y: Y(d.b.y) };
+    const a = { x: X(d.a.x), y: Y(d.a.y) },
+      b = { x: X(d.b.x), y: Y(d.b.y) };
     const l = Math.hypot(b.x - a.x, b.y - a.y) || 1;
     const u = { x: (b.x - a.x) / l, y: (b.y - a.y) / l };
     const ext = ARROW + 5;
@@ -184,8 +212,15 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
     const h = stacked ? 2 * LINE_H : LINE_H;
     const tip = { x: b.x + u.x * (ext + 3), y: b.y + u.y * (ext + 3) };
     text(
-      { x: tip.x, y: tip.y + (u.y < -0.3 ? -h / 2 : u.y > 0.3 ? h / 2 : 0), anchor: u.x < -0.3 ? "end" : "start", role: "dim", ref: d.id, stacked },
-      stacked ? size.stackedW ?? size.w : size.w,
+      {
+        x: tip.x,
+        y: tip.y + (u.y < -0.3 ? -h / 2 : u.y > 0.3 ? h / 2 : 0),
+        anchor: u.x < -0.3 ? "end" : "start",
+        role: "dim",
+        ref: d.id,
+        stacked,
+      },
+      stacked ? (size.stackedW ?? size.w) : size.w,
     );
   }
 
@@ -215,7 +250,13 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
         const q = end({ x: -axis.dir.x, y: -axis.dir.y });
         line(q.x, q.y, p.x, p.y, "axis");
         text(
-          { x: p.x + p.n.x * 3, y: p.y + p.n.y * 9, anchor: p.n.x > 0 ? "start" : p.n.x < 0 ? "end" : "middle", role: "axis", ref: axis.id },
+          {
+            x: p.x + p.n.x * 3,
+            y: p.y + p.n.y * 9,
+            anchor: p.n.x > 0 ? "start" : p.n.x < 0 ? "end" : "middle",
+            role: "axis",
+            ref: axis.id,
+          },
           CHAR,
         );
       }
@@ -227,15 +268,36 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
     }
   }
 
-  const bx0 = Math.min(...rects.map((r) => r.x0)), by0 = Math.min(...rects.map((r) => r.y0));
-  const bx1 = Math.max(...rects.map((r) => r.x1)), by1 = Math.max(...rects.map((r) => r.y1));
-  const dx = PAD - bx0, dy = PAD - by0;
-  const mv = (p: { x: number; y: number }) => { p.x += dx; p.y += dy; };
-  for (const l of lines) { l.x1 += dx; l.x2 += dx; l.y1 += dy; l.y2 += dy; }
+  const bx0 = Math.min(...rects.map((r) => r.x0)),
+    by0 = Math.min(...rects.map((r) => r.y0));
+  const bx1 = Math.max(...rects.map((r) => r.x1)),
+    by1 = Math.max(...rects.map((r) => r.y1));
+  const dx = PAD - bx0,
+    dy = PAD - by0;
+  const mv = (p: { x: number; y: number }) => {
+    p.x += dx;
+    p.y += dy;
+  };
+  for (const l of lines) {
+    l.x1 += dx;
+    l.x2 += dx;
+    l.y1 += dy;
+    l.y2 += dy;
+  }
   arrows.forEach(mv);
   texts.forEach(mv);
   markers.forEach(mv);
-  return { width: bx1 - bx0 + 2 * PAD, height: by1 - by0 + 2 * PAD, ox: dx, oy: dy, scale: s, lines, arrows, texts, markers };
+  return {
+    width: bx1 - bx0 + 2 * PAD,
+    height: by1 - by0 + 2 * PAD,
+    ox: dx,
+    oy: dy,
+    scale: s,
+    lines,
+    arrows,
+    texts,
+    markers,
+  };
 }
 
 /**
@@ -243,8 +305,15 @@ export function layoutScene(g: SectionGeometry, dims: DimSpec[], o: LayoutOption
  * would crowd the geometry below MIN_GEOMETRY_SHARE of the width, the scene is allowed to overflow
  * and the SVG is shrunk by the browser instead.
  */
-export function fitScale(g: SectionGeometry, dims: DimSpec[], o: Omit<LayoutOptions, "scale">, availW: number, maxH: number): number {
-  const w = g.extent.x1 - g.extent.x0, h = g.extent.y1 - g.extent.y0;
+export function fitScale(
+  g: SectionGeometry,
+  dims: DimSpec[],
+  o: Omit<LayoutOptions, "scale">,
+  availW: number,
+  maxH: number,
+): number {
+  const w = g.extent.x1 - g.extent.x0,
+    h = g.extent.y1 - g.extent.y0;
   const floor = Math.min((MIN_GEOMETRY_SHARE * availW) / w, (0.6 * maxH) / h);
   let s = Math.min(availW / w, maxH / h) * 0.6;
   for (let i = 0; i < 8; i++) {

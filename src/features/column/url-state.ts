@@ -36,6 +36,12 @@ export function useQueryState() {
   const str = useCallback((k: string, d = "") => params.get(k) ?? d, [params]);
   const numOr = useCallback((k: string, d: number) => parseNum(params.get(k), d), [params]);
   const numOpt = useCallback((k: string) => parseNum(params.get(k)), [params]);
-  const bool = useCallback((k: string, d = false) => { const v = params.get(k); return v === null ? d : v === "1"; }, [params]);
+  const bool = useCallback(
+    (k: string, d = false) => {
+      const v = params.get(k);
+      return v === null ? d : v === "1";
+    },
+    [params],
+  );
   return { params, set, str, numOr, numOpt, bool };
 }

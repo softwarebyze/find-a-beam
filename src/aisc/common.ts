@@ -4,7 +4,10 @@ import type { DesignMethod, LimitState, StrengthResult } from "./types";
  * Available strength: φRn (LRFD) or Rn/Ω (ASD). When limit states carry their own factors
  * (tension yielding vs. rupture), returns the minimum available strength over limit states.
  */
-export function available(r: Pick<StrengthResult, "nominal" | "phi" | "omega"> & { limitStates?: LimitState[] }, method: DesignMethod): number {
+export function available(
+  r: Pick<StrengthResult, "nominal" | "phi" | "omega"> & { limitStates?: LimitState[] },
+  method: DesignMethod,
+): number {
   const ls = r.limitStates?.filter((l) => l.phi !== undefined && l.omega !== undefined);
   if (ls && ls.length) {
     return Math.min(...ls.map((l) => (method === "LRFD" ? l.phi! * l.nominal : l.nominal / l.omega!)));

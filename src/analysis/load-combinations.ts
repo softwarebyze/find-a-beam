@@ -25,7 +25,11 @@ const roofVariants = ["Lr", "S", "R"] as const;
 
 function expand(id: string, label: string, base: Partial<Record<keyof LoadSet, number>>, roof?: number): Combination[] {
   if (roof === undefined) return [{ id, label, factors: base }];
-  return roofVariants.map((r) => ({ id: `${id}-${r}`, label: label.replace("(Lr or S or R)", r), factors: { ...base, [r]: roof } }));
+  return roofVariants.map((r) => ({
+    id: `${id}-${r}`,
+    label: label.replace("(Lr or S or R)", r),
+    factors: { ...base, [r]: roof },
+  }));
 }
 
 export const LRFD_COMBINATIONS: Combination[] = [
@@ -61,7 +65,10 @@ export function applyCombination(loads: LoadSet, c: Combination): number {
 }
 
 /** Governing (max absolute) combination. Loads not supplied are taken as zero. */
-export function governingCombination(loads: LoadSet, method: DesignMethod): { combo: Combination; value: number; all: { combo: Combination; value: number }[] } {
+export function governingCombination(
+  loads: LoadSet,
+  method: DesignMethod,
+): { combo: Combination; value: number; all: { combo: Combination; value: number }[] } {
   const all = combinationsFor(method).map((combo) => ({ combo, value: applyCombination(loads, combo) }));
   const best = all.reduce((a, b) => (Math.abs(b.value) > Math.abs(a.value) ? b : a));
   return { ...best, all };

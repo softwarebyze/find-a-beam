@@ -37,7 +37,11 @@ const COMMON_SCALE = ["W14X90", "HSS6X6X1/2", "C8X11.5", "L2X2X1/8"].flatMap((l)
 export function DrawingGallery() {
   return (
     <div>
-      <PageHeader eyebrow="Drawings" title="Cross-section gallery" description="Every shape family drawn from the AISC Shapes Database v16.0, dimensioned and as a thumbnail." />
+      <PageHeader
+        eyebrow="Drawings"
+        title="Cross-section gallery"
+        description="Every shape family drawn from the AISC Shapes Database v16.0, dimensioned and as a thumbnail."
+      />
       <Card title="Thumbnails at a common scale" subtitle="6 px/in." className="mb-6">
         <div className="flex flex-wrap items-end gap-4">
           {shapes.map(({ shape }) => (
@@ -48,13 +52,21 @@ export function DrawingGallery() {
           ))}
         </div>
       </Card>
-      <Card title="Dimensioned at a common scale" subtitle="10 px/in. — labels keep their size as members shrink" className="mb-6">
+      <Card
+        title="Dimensioned at a common scale"
+        subtitle="10 px/in. — labels keep their size as members shrink"
+        className="mb-6"
+      >
         <div className="flex flex-wrap items-end gap-6">
-          {COMMON_SCALE.map((s) => <CrossSection key={s.label} shape={s} scale={10} showUnits={false} />)}
+          {COMMON_SCALE.map((s) => (
+            <CrossSection key={s.label} shape={s} scale={10} showUnits={false} />
+          ))}
         </div>
       </Card>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {shapes.map(({ shape, note }) => <GalleryCard key={shape.label} shape={shape} note={note} />)}
+        {shapes.map(({ shape, note }) => (
+          <GalleryCard key={shape.label} shape={shape} note={note} />
+        ))}
       </div>
     </div>
   );

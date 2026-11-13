@@ -1,5 +1,22 @@
 /** Member checks orchestrate the cited engine; all values are in kip, in., ksi. */
-import { available, cbFromMoments, Cm, compressionStrength, flexuralStrength, interaction, magnificationReport, shearStrength, tensionStrength, UnsupportedError, type CalcStep, type CompressionInput, type DesignMethod, type ExtendedInteractionResult, type StrengthResult, type StressInteractionPoint } from "@/aisc";
+import {
+  available,
+  cbFromMoments,
+  Cm,
+  compressionStrength,
+  flexuralStrength,
+  interaction,
+  magnificationReport,
+  shearStrength,
+  tensionStrength,
+  UnsupportedError,
+  type CalcStep,
+  type CompressionInput,
+  type DesignMethod,
+  type ExtendedInteractionResult,
+  type StrengthResult,
+  type StressInteractionPoint,
+} from "@/aisc";
 import { E, type Material } from "@/data/materials";
 import { familyOf, req, type Shape } from "@/data/shapes";
 
@@ -47,38 +64,108 @@ export interface MemberReport {
 }
 export const supportsH1 = (shape: Shape) => ["i-shape", "hss-rect", "hss-round", "pipe"].includes(familyOf(shape));
 /** Horizontal moment sum, vertical axial ratio; the two branches meet at (0.9, 0.2). */
-export const H1_ENVELOPE = [{ x: 0, y: 1 }, { x: 0.9, y: 0.2 }, { x: 1, y: 0 }];
+export const H1_ENVELOPE = [
+  { x: 0, y: 1 },
+  { x: 0.9, y: 0.2 },
+  { x: 1, y: 0 },
+];
 
 export function checkMember(input: MemberInput): MemberReport {
   const { shape, material, method } = input;
-  const report: MemberReport = { checks: [], errors: [], amplification: [], inputSteps: [], moments: { x: input.Mx, y: input.My }, Cb: input.Cb, B1x: 1, B1y: 1, ratio: 0, governing: "", status: "INCOMPLETE" };
-  const error = (check: string, e: unknown) => report.errors.push({ check, message: e instanceof Error ? e.message : String(e) });
+  const report: MemberReport = {
+    checks: [],
+    errors: [],
+    amplification: [],
+    inputSteps: [],
+    moments: { x: input.Mx, y: input.My },
+    Cb: input.Cb,
+    B1x: 1,
+    B1y: 1,
+    ratio: 0,
+    governing: "",
+    status: "INCOMPLETE",
+  };
+  const error = (check: string, e: unknown) =>
+    report.errors.push({ check, message: e instanceof Error ? e.message : String(e) });
   const check = (id: string, label: string, demand: number, ref: string, fn: () => StrengthResult) => {
     try {
       if (!Number.isFinite(demand)) throw new RangeError("Required strength must be finite");
-      const result = fn(), capacity = available(result, method);
+      const result = fn(),
+        capacity = available(result, method);
       if (!(capacity > 0) || !Number.isFinite(capacity)) throw new Error("No finite positive available strength");
-      report.checks.push({ id, label, demand: Math.abs(demand), result, capacity, ratio: Math.abs(demand) / capacity, ref });
-    } catch (e) { error(label, e); }
+      report.checks.push({
+        id,
+        label,
+        demand: Math.abs(demand),
+        result,
+        capacity,
+        ratio: Math.abs(demand) / capacity,
+        ref,
+      });
+    } catch (e) {
+      error(label, e);
+    }
   };
   try {
-    for (const [name, value] of Object.entries({ P: input.P, Mx: input.Mx, My: input.My, Vx: input.Vx, Vy: input.Vy, Lb: input.Lb, Lcx: input.compression.Lcx, Lcy: input.compression.Lcy, Lcz: input.compression.Lcz ?? 0 })) {
+    for (const [name, value] of Object.entries({
+      P: input.P,
+      Mx: input.Mx,
+      My: input.My,
+      Vx: input.Vx,
+      Vy: input.Vy,
+      Lb: input.Lb,
+      Lcx: input.compression.Lcx,
+      Lcy: input.compression.Lcy,
+      Lcz: input.compression.Lcz ?? 0,
+    })) {
       if (!Number.isFinite(value)) throw new RangeError(`${name} must be finite`);
-      if (["P", "Lb", "Lcx", "Lcy", "Lcz"].includes(name) && value < 0) throw new RangeError(`${name} must be nonnegative (use the axial toggle for tension)`);
+      if (["P", "Lb", "Lcx", "Lcy", "Lcz"].includes(name) && value < 0)
+        throw new RangeError(`${name} must be nonnegative (use the axial toggle for tension)`);
     }
-  } catch (e) { error("Inputs", e); return report; }
+  } catch (e) {
+    error("Inputs", e);
+    return report;
+  }
   if (input.endMoments) {
-    report.moments = { x: Math.max(Math.abs(input.endMoments.x1), Math.abs(input.endMoments.x2)), y: Math.max(Math.abs(input.endMoments.y1), Math.abs(input.endMoments.y2)) };
-    report.inputSteps.push(...Object.entries(input.endMoments).map(([key, value]): CalcStep => ({ label: `Signed end moment ${key}`, value, quantity: "moment", ref: "Eq. A-8-4" })));
+    report.moments = {
+      x: Math.max(Math.abs(input.endMoments.x1), Math.abs(input.endMoments.x2)),
+      y: Math.max(Math.abs(input.endMoments.y1), Math.abs(input.endMoments.y2)),
+    };
+    report.inputSteps.push(
+      ...Object.entries(input.endMoments).map(([key, value]): CalcStep => ({
+        label: `Signed end moment ${key}`,
+        value,
+        quantity: "moment",
+        ref: "Eq. A-8-4",
+      })),
+    );
   }
   if (input.cbMoments) {
     try {
       const { max, a, b, c } = input.cbMoments;
       report.Cb = cbFromMoments(max, a, b, c);
-      report.inputSteps.push(...Object.entries(input.cbMoments).map(([key, value]): CalcStep => ({ label: `Cb moment sample ${key}`, value, quantity: "moment", ref: "Eq. F1-1" })), { label: "Quarter-point moment gradient factor", symbol: "C{b}", expr: "12.5M{max}/(2.5M{max}+3M{A}+4M{B}+3M{C})", value: report.Cb, quantity: "ratio", ref: "Eq. F1-1" });
+      report.inputSteps.push(
+        ...Object.entries(input.cbMoments).map(([key, value]): CalcStep => ({
+          label: `Cb moment sample ${key}`,
+          value,
+          quantity: "moment",
+          ref: "Eq. F1-1",
+        })),
+        {
+          label: "Quarter-point moment gradient factor",
+          symbol: "C{b}",
+          expr: "12.5M{max}/(2.5M{max}+3M{A}+4M{B}+3M{C})",
+          value: report.Cb,
+          quantity: "ratio",
+          ref: "Eq. F1-1",
+        },
+      );
       // A sampled maximum must bound the major-axis demand used in the member check.
-      if (Math.abs(max) + 1e-9 < Math.abs(report.moments.x)) throw new RangeError("Cb Mmax must bound the major-axis required moment before amplification");
-    } catch (e) { error("Cb", e); }
+      if (Math.abs(max) + 1e-9 < Math.abs(report.moments.x))
+        throw new RangeError("Cb Mmax must bound the major-axis required moment before amplification");
+    } catch (e) {
+      error("Cb", e);
+    }
   }
   if (input.amplification && input.axial === "compression") {
     try {
@@ -88,32 +175,93 @@ export function checkMember(input: MemberInput): MemberReport {
       const cmY = input.endMoments ? Cm(input.endMoments.y1, input.endMoments.y2) : a.cmY;
       const x = magnificationReport(input.P, E * req(shape, "Ix") * a.stiffness, a.L1x, cmX, method);
       const y = magnificationReport(input.P, E * req(shape, "Iy") * a.stiffness, a.L1y, cmY, method);
-      report.B1x = x.B1; report.B1y = y.B1;
-      report.amplification = [{ label: "Analysis stiffness ratio", symbol: "EI*/EI", value: a.stiffness, quantity: "ratio", ref: "§C2.3 / Appendix 8" }, ...x.steps.map((s) => ({ ...s, label: `x-axis: ${s.label}` })), ...y.steps.map((s) => ({ ...s, label: `y-axis: ${s.label}` }))];
+      report.B1x = x.B1;
+      report.B1y = y.B1;
+      report.amplification = [
+        {
+          label: "Analysis stiffness ratio",
+          symbol: "EI*/EI",
+          value: a.stiffness,
+          quantity: "ratio",
+          ref: "§C2.3 / Appendix 8",
+        },
+        ...x.steps.map((s) => ({ ...s, label: `x-axis: ${s.label}` })),
+        ...y.steps.map((s) => ({ ...s, label: `y-axis: ${s.label}` })),
+      ];
       if (!Number.isFinite(x.B1 + y.B1)) {
-        report.ratio = Infinity; report.governing = "Elastic instability · Eq. A-8-3";
+        report.ratio = Infinity;
+        report.governing = "Elastic instability · Eq. A-8-3";
         error("Appendix 8", new RangeError("αPr ≥ Pe1: elastic stability limit reached; B1 is unbounded"));
       } else report.moments = { x: report.moments.x * x.B1, y: report.moments.y * y.B1 };
-    } catch (e) { error("Appendix 8", e); }
+    } catch (e) {
+      error("Appendix 8", e);
+    }
   }
-  check("axial", input.axial === "compression" ? "Compression" : "Tension", input.P, input.axial === "compression" ? "Ch. E" : "Ch. D", () => input.axial === "compression" ? compressionStrength(shape, material, input.compression) : tensionStrength(shape, material, { ...input.tension, method }));
-  check("mx", "Flexure x (major)", report.moments.x, "Ch. F", () => flexuralStrength(shape, material, { axis: "major", Lb: input.Lb, Cb: report.Cb }));
-  check("my", "Flexure y (minor)", report.moments.y, "Ch. F", () => flexuralStrength(shape, material, { axis: "minor", Lb: input.Lb, Cb: report.Cb }));
-  check("vx", "Shear Vx (parallel x)", input.Vx, "Ch. G · minor", () => shearStrength(shape, material, { axis: "minor" }));
-  check("vy", "Shear Vy (parallel y)", input.Vy, "Ch. G · major", () => shearStrength(shape, material, { axis: "major" }));
+  check(
+    "axial",
+    input.axial === "compression" ? "Compression" : "Tension",
+    input.P,
+    input.axial === "compression" ? "Ch. E" : "Ch. D",
+    () =>
+      input.axial === "compression"
+        ? compressionStrength(shape, material, input.compression)
+        : tensionStrength(shape, material, { ...input.tension, method }),
+  );
+  check("mx", "Flexure x (major)", report.moments.x, "Ch. F", () =>
+    flexuralStrength(shape, material, { axis: "major", Lb: input.Lb, Cb: report.Cb }),
+  );
+  check("my", "Flexure y (minor)", report.moments.y, "Ch. F", () =>
+    flexuralStrength(shape, material, { axis: "minor", Lb: input.Lb, Cb: report.Cb }),
+  );
+  check("vx", "Shear V{x} (minor axis, flanges)", input.Vx, "Ch. G · minor", () =>
+    shearStrength(shape, material, { axis: "minor" }),
+  );
+  check("vy", "Shear V{y} (major axis, web)", input.Vy, "Ch. G · major", () =>
+    shearStrength(shape, material, { axis: "major" }),
+  );
   try {
-    const p = report.checks.find((c) => c.id === "axial"), mx = report.checks.find((c) => c.id === "mx"), my = report.checks.find((c) => c.id === "my");
+    const p = report.checks.find((c) => c.id === "axial"),
+      mx = report.checks.find((c) => c.id === "mx"),
+      my = report.checks.find((c) => c.id === "my");
     if (input.h2) {
-      if (!input.h2.confirmed) throw new UnsupportedError("Confirm that signed stresses include second-order effects at every critical point, with available stresses for the local stress sense and principal axes (§H2)");
+      if (!input.h2.confirmed)
+        throw new UnsupportedError(
+          "Confirm that signed stresses include second-order effects at every critical point, with available stresses for the local stress sense and principal axes (§H2)",
+        );
       report.interaction = interaction({ mode: "H2", points: input.h2.points });
     } else {
-      if (!supportsH1(shape)) throw new UnsupportedError("This section needs a critical-point stress check under §H2; select H2 and enter the principal-axis stresses");
+      if (!supportsH1(shape))
+        throw new UnsupportedError(
+          "This section needs a critical-point stress check under §H2; select H2 and enter the principal-axis stresses",
+        );
       if (!p || !mx || !my) throw new UnsupportedError("Axial and both flexural strengths are required for H1");
-      if (Number.isFinite(report.B1x + report.B1y)) report.interaction = interaction({ Pr: input.P, Pc: p.capacity, Mrx: report.moments.x, Mcx: mx.capacity, Mry: report.moments.y, Mcy: my.capacity });
+      if (Number.isFinite(report.B1x + report.B1y))
+        report.interaction = interaction({
+          Pr: input.P,
+          Pc: p.capacity,
+          Mrx: report.moments.x,
+          Mcx: mx.capacity,
+          Mry: report.moments.y,
+          Mcy: my.capacity,
+        });
     }
-  } catch (e) { error("Interaction", e); }
-  const ratios = [...report.checks.map((c) => ({ ratio: c.ratio, name: `${c.label} · ${c.result.governing}` })), ...(report.interaction ? [{ ratio: report.interaction.ratio, name: `Eq. ${report.interaction.equation}` }] : [])];
-  for (const r of ratios) if (r.ratio >= report.ratio) { report.ratio = r.ratio; report.governing = r.name; }
-  report.status = report.ratio > 1 + 1e-9 ? "FAIL" : report.errors.length || !report.interaction || report.checks.length < 5 ? "INCOMPLETE" : "PASS";
+  } catch (e) {
+    error("Interaction", e);
+  }
+  const ratios = [
+    ...report.checks.map((c) => ({ ratio: c.ratio, name: `${c.label} · ${c.result.governing}` })),
+    ...(report.interaction ? [{ ratio: report.interaction.ratio, name: `Eq. ${report.interaction.equation}` }] : []),
+  ];
+  for (const r of ratios)
+    if (r.ratio >= report.ratio) {
+      report.ratio = r.ratio;
+      report.governing = r.name;
+    }
+  report.status =
+    report.ratio > 1 + 1e-9
+      ? "FAIL"
+      : report.errors.length || !report.interaction || report.checks.length < 5
+        ? "INCOMPLETE"
+        : "PASS";
   return report;
 }

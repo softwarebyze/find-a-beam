@@ -21,7 +21,10 @@ export type Quantity =
   | "areaLoad" // psf | kPa      (stored in ksi)
   | "ratio"; // unitless
 
-interface UnitDef { label: string; factor: number } // display = stored * factor
+interface UnitDef {
+  label: string;
+  factor: number;
+} // display = stored * factor
 
 const IN_TO_MM = 25.4;
 const KIP_TO_KN = 4.4482216152605;
@@ -71,8 +74,14 @@ export function toFraction(v: number, denom = 16): string {
   let whole = Math.floor(Math.abs(v));
   let n = Math.round((Math.abs(v) - whole) * denom);
   let d = denom;
-  if (n === d) { whole += 1; n = 0; }
-  while (n > 0 && n % 2 === 0) { n /= 2; d /= 2; }
+  if (n === d) {
+    whole += 1;
+    n = 0;
+  }
+  while (n > 0 && n % 2 === 0) {
+    n /= 2;
+    d /= 2;
+  }
   if (n === 0) return `${sign}${whole}`;
   return whole ? `${sign}${whole}-${n}/${d}` : `${sign}${n}/${d}`;
 }

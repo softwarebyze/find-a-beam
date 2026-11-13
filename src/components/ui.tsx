@@ -11,7 +11,17 @@ import { Sym } from "./Sym";
 
 export { Sym };
 
-export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+}: {
+  eyebrow?: string;
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+}) {
   return (
     <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
@@ -24,9 +34,25 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
   );
 }
 
-export function Card({ title, subtitle, actions, children, className, bodyClassName }: { title?: ReactNode; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; bodyClassName?: string }) {
+export function Card({
+  title,
+  subtitle,
+  actions,
+  children,
+  className,
+  bodyClassName,
+}: {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  bodyClassName?: string;
+}) {
   return (
-    <section className={clsx("rounded-xl border border-line bg-surface shadow-[0_1px_0_rgba(15,23,42,0.03)]", className)}>
+    <section
+      className={clsx("rounded-xl border border-line bg-surface shadow-[0_1px_0_rgba(15,23,42,0.03)]", className)}
+    >
       {(title || actions) && (
         <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
           <div className="min-w-0">
@@ -41,10 +67,22 @@ export function Card({ title, subtitle, actions, children, className, bodyClassN
   );
 }
 
-export function Field({ label, hint, children, htmlFor }: { label: ReactNode; hint?: ReactNode; children: ReactNode; htmlFor?: string }) {
+export function Field({
+  label,
+  hint,
+  children,
+  htmlFor,
+}: {
+  label: ReactNode;
+  hint?: ReactNode;
+  children: ReactNode;
+  htmlFor?: string;
+}) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={htmlFor} className="text-xs font-medium text-muted">{label}</label>
+      <label htmlFor={htmlFor} className="text-xs font-medium text-muted">
+        {label}
+      </label>
       {children}
       {hint && <p className="text-[11px] text-faint">{hint}</p>}
     </div>
@@ -58,16 +96,35 @@ const inputBase =
  * Numeric input bound to an ENGINE-unit value. Displays/accepts the active unit system.
  * e.g. <QuantityInput label="Span" quantity="span" value={spanIn} onChange={setSpanIn} />
  */
-export function QuantityInput({ label, quantity, value, onChange, hint, min, step, placeholder, sig = 4 }: {
-  label: ReactNode; quantity: Quantity; value: number | undefined; onChange: (v: number | undefined) => void;
-  hint?: ReactNode; min?: number; step?: number; placeholder?: string; sig?: number;
+export function QuantityInput({
+  label,
+  quantity,
+  value,
+  onChange,
+  hint,
+  min,
+  step,
+  placeholder,
+  sig = 4,
+}: {
+  label: ReactNode;
+  quantity: Quantity;
+  value: number | undefined;
+  onChange: (v: number | undefined) => void;
+  hint?: ReactNode;
+  min?: number;
+  step?: number;
+  placeholder?: string;
+  sig?: number;
 }) {
   const { units } = useSettings();
   const id = useId();
   const shown = value === undefined ? "" : String(Number(toDisplay(value, quantity, units).toPrecision(sig)));
   const [text, setText] = useState(shown);
   // Re-sync when value or units change from outside
-  useEffect(() => { setText((t) => (t !== "" && Number(t) === Number(shown) ? t : shown)); }, [shown]);
+  useEffect(() => {
+    setText((t) => (t !== "" && Number(t) === Number(shown) ? t : shown));
+  }, [shown]);
   const u = unitLabel(quantity, units);
   return (
     <Field label={label} hint={hint} htmlFor={id}>
@@ -86,30 +143,84 @@ export function QuantityInput({ label, quantity, value, onChange, hint, min, ste
             onChange(e.target.value.trim() === "" || !Number.isFinite(n) ? undefined : fromDisplay(n, quantity, units));
           }}
         />
-        {u && <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-xs text-faint">{u}</span>}
+        {u && (
+          <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-xs text-faint">
+            {u}
+          </span>
+        )}
       </div>
     </Field>
   );
 }
 
 /** Plain number input (unitless, e.g. Cb, K). */
-export function NumberInput({ label, value, onChange, hint, step }: { label: ReactNode; value: number | undefined; onChange: (v: number | undefined) => void; hint?: ReactNode; step?: number }) {
+export function NumberInput({
+  label,
+  value,
+  onChange,
+  hint,
+  step,
+}: {
+  label: ReactNode;
+  value: number | undefined;
+  onChange: (v: number | undefined) => void;
+  hint?: ReactNode;
+  step?: number;
+}) {
   return <QuantityInput label={label} quantity="ratio" value={value} onChange={onChange} hint={hint} step={step} />;
 }
 
-export function Select<T extends string>({ label, value, onChange, options, hint }: { label?: ReactNode; value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[] | readonly { value: T; label: ReactNode }[]; hint?: ReactNode }) {
+export function Select<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+  hint,
+}: {
+  label?: ReactNode;
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: ReactNode }[] | readonly { value: T; label: ReactNode }[];
+  hint?: ReactNode;
+}) {
   const id = useId();
   const el = (
     <select id={id} className={clsx(inputBase, "pr-8")} value={value} onChange={(e) => onChange(e.target.value as T)}>
-      {options.map((o) => <option key={o.value} value={o.value}>{typeof o.label === "string" ? o.label : o.value}</option>)}
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {typeof o.label === "string" ? o.label : o.value}
+        </option>
+      ))}
     </select>
   );
-  return label ? <Field label={label} hint={hint} htmlFor={id}>{el}</Field> : el;
+  return label ? (
+    <Field label={label} hint={hint} htmlFor={id}>
+      {el}
+    </Field>
+  ) : (
+    el
+  );
 }
 
-export function Segmented<T extends string>({ value, onChange, options, size = "md", ariaLabel }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[]; size?: "sm" | "md"; ariaLabel?: string }) {
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  size = "md",
+  ariaLabel,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: ReactNode }[];
+  size?: "sm" | "md";
+  ariaLabel?: string;
+}) {
   return (
-    <div role="radiogroup" aria-label={ariaLabel} className="inline-flex rounded-lg border border-line-strong bg-surface-2 p-0.5">
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      className="inline-flex rounded-lg border border-line-strong bg-surface-2 p-0.5"
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -130,7 +241,12 @@ export function Segmented<T extends string>({ value, onChange, options, size = "
   );
 }
 
-export function Button({ children, variant = "secondary", className, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" }) {
+export function Button({
+  children,
+  variant = "secondary",
+  className,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" }) {
   return (
     <button
       type="button"
@@ -148,24 +264,39 @@ export function Button({ children, variant = "secondary", className, ...rest }: 
   );
 }
 
-export function Badge({ children, tone = "neutral", className }: { children: ReactNode; tone?: "neutral" | "accent" | "pass" | "fail" | "warn"; className?: string }) {
+export function Badge({
+  children,
+  tone = "neutral",
+  className,
+}: {
+  children: ReactNode;
+  tone?: "neutral" | "accent" | "pass" | "fail" | "warn";
+  className?: string;
+}) {
   return (
-    <span className={clsx(
-      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-4",
-      tone === "neutral" && "bg-surface-2 text-muted ring-1 ring-line",
-      tone === "accent" && "bg-accent-soft text-accent",
-      tone === "pass" && "bg-pass-soft text-pass",
-      tone === "fail" && "bg-fail-soft text-fail",
-      tone === "warn" && "bg-warn-soft text-warn",
-      className,
-    )}>{children}</span>
+    <span
+      className={clsx(
+        "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium leading-4",
+        tone === "neutral" && "bg-surface-2 text-muted ring-1 ring-line",
+        tone === "accent" && "bg-accent-soft text-accent",
+        tone === "pass" && "bg-pass-soft text-pass",
+        tone === "fail" && "bg-fail-soft text-fail",
+        tone === "warn" && "bg-warn-soft text-warn",
+        className,
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
 /** Specification / Manual reference chip, e.g. <SpecRef>Eq. F2-2</SpecRef> or <SpecRef>Manual Table 3-23</SpecRef>. */
 export function SpecRef({ children, title }: { children: ReactNode; title?: string }) {
   return (
-    <span title={title} className="inline-flex items-center rounded border border-line bg-surface-2 px-1 py-px font-mono text-[10.5px] leading-4 text-muted whitespace-nowrap">
+    <span
+      title={title}
+      className="inline-flex items-center rounded border border-line bg-surface-2 px-1 py-px font-mono text-[10.5px] leading-4 text-muted whitespace-nowrap"
+    >
       {children}
     </span>
   );
@@ -178,18 +309,40 @@ export function RatioBar({ ratio, label }: { ratio: number; label?: ReactNode })
     <div className="flex items-center gap-2">
       {label && <div className="w-24 shrink-0 text-xs text-muted">{label}</div>}
       <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-2 ring-1 ring-line">
-        <div className={clsx("h-full rounded-full", pass ? "bg-pass" : "bg-fail")} style={{ width: `${Math.min(100, ratio * 100)}%` }} />
+        <div
+          className={clsx("h-full rounded-full", pass ? "bg-pass" : "bg-fail")}
+          style={{ width: `${Math.min(100, ratio * 100)}%` }}
+        />
       </div>
-      <div className={clsx("num w-12 text-right text-xs font-semibold", pass ? "text-pass" : "text-fail")}>{fmt(ratio, 3)}</div>
+      <div className={clsx("num w-12 text-right text-xs font-semibold", pass ? "text-pass" : "text-fail")}>
+        {fmt(ratio, 3)}
+      </div>
     </div>
   );
 }
 
-export function Stat({ label, value, sub, tone }: { label: ReactNode; value: ReactNode; sub?: ReactNode; tone?: "pass" | "fail" }) {
+export function Stat({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: ReactNode;
+  value: ReactNode;
+  sub?: ReactNode;
+  tone?: "pass" | "fail";
+}) {
   return (
     <div className="rounded-lg border border-line bg-surface px-3 py-2.5">
       <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{label}</div>
-      <div className={clsx("num mt-0.5 text-lg font-semibold", tone === "pass" ? "text-pass" : tone === "fail" ? "text-fail" : "text-ink")}>{value}</div>
+      <div
+        className={clsx(
+          "num mt-0.5 text-lg font-semibold",
+          tone === "pass" ? "text-pass" : tone === "fail" ? "text-fail" : "text-ink",
+        )}
+      >
+        {value}
+      </div>
       {sub && <div className="mt-0.5 text-xs text-muted">{sub}</div>}
     </div>
   );

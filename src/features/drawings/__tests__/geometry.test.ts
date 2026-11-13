@@ -4,11 +4,19 @@ import { contoursBounds, sectionArea, sectionGeometry, sectionPath, singleAngleL
 /** Expected outline width × height from the tabulated dimensions. */
 function expectedBox(s: Shape): [number, number] {
   switch (familyOf(s)) {
-    case "i-shape": case "channel": case "tee": return [req(s, "bf"), req(s, "d")];
-    case "angle": return [req(s, "d"), req(s, "b")];
-    case "double-angle": return [2 * req(s, "b") + (doubleAngleInfo(s)?.spacing ?? 0), req(s, "d")];
-    case "hss-rect": return [req(s, "B"), req(s, "Ht")];
-    case "hss-round": case "pipe": return [req(s, "OD"), req(s, "OD")];
+    case "i-shape":
+    case "channel":
+    case "tee":
+      return [req(s, "bf"), req(s, "d")];
+    case "angle":
+      return [req(s, "d"), req(s, "b")];
+    case "double-angle":
+      return [2 * req(s, "b") + (doubleAngleInfo(s)?.spacing ?? 0), req(s, "d")];
+    case "hss-rect":
+      return [req(s, "B"), req(s, "Ht")];
+    case "hss-round":
+    case "pipe":
+      return [req(s, "OD"), req(s, "OD")];
   }
 }
 
@@ -31,7 +39,8 @@ describe("cross-section geometry — every shape in the database", () => {
       expect(Number.isFinite(d.value) && d.value > 0).toBe(true);
       for (const p of [d.a, d.b]) expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true);
     }
-    for (const v of [g.centroid.x, g.centroid.y, g.extent.x0, g.extent.x1, g.extent.y0, g.extent.y1]) expect(Number.isFinite(v)).toBe(true);
+    for (const v of [g.centroid.x, g.centroid.y, g.extent.x0, g.extent.x1, g.extent.y0, g.extent.y1])
+      expect(Number.isFinite(v)).toBe(true);
   });
 });
 

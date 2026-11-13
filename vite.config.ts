@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  build: { chunkSizeWarningLimit: 1200 },
+  build: { chunkSizeWarningLimit: 1400 },
   test: {
     globals: true,
     environment: "node",

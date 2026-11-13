@@ -27,7 +27,18 @@ export interface ShapeTableProps {
   height: number | string;
 }
 
-export function ShapeTable({ rows, cols, units, sort, onSort, bold, compare, compareFull, onToggleCompare, height }: ShapeTableProps) {
+export function ShapeTable({
+  rows,
+  cols,
+  units,
+  sort,
+  onSort,
+  bold,
+  compare,
+  compareFull,
+  onToggleCompare,
+  height,
+}: ShapeTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const hintId = useId();
@@ -37,9 +48,16 @@ export function ShapeTable({ rows, cols, units, sort, onSort, bold, compare, com
   const template = `${LEAD_W}px ${cols.map((k) => `${colWidth(k)}px`).join(" ")} minmax(0,1fr)`;
   const width = LEAD_W + cols.reduce((a, k) => a + colWidth(k), 0);
 
-  const v = useVirtualizer({ count: rows.length, getScrollElement: () => scrollRef.current, estimateSize: () => ROW_H, overscan: 14 });
+  const v = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_H,
+    overscan: 14,
+  });
 
-  useEffect(() => { setActive((a) => Math.min(a, Math.max(rows.length - 1, 0))); }, [rows.length]);
+  useEffect(() => {
+    setActive((a) => Math.min(a, Math.max(rows.length - 1, 0)));
+  }, [rows.length]);
   useEffect(() => {
     if (!pendingFocus.current) return;
     // The target row may not be rendered until the virtualizer reacts to the scroll; retry on the next render.
@@ -63,15 +81,32 @@ export function ShapeTable({ rows, cols, units, sort, onSort, bold, compare, com
     const page = Math.max(1, Math.floor((scrollRef.current?.clientHeight ?? 400) / ROW_H) - 2);
     const s = rows[active];
     switch (e.key) {
-      case "ArrowDown": moveTo(active + 1); break;
-      case "ArrowUp": moveTo(active - 1); break;
-      case "PageDown": moveTo(active + page); break;
-      case "PageUp": moveTo(active - page); break;
-      case "Home": moveTo(0); break;
-      case "End": moveTo(rows.length - 1); break;
-      case "Enter": if (s) open(slugOf(s.label)); break;
-      case " ": if (s) onToggleCompare(slugOf(s.label)); break;
-      default: return;
+      case "ArrowDown":
+        moveTo(active + 1);
+        break;
+      case "ArrowUp":
+        moveTo(active - 1);
+        break;
+      case "PageDown":
+        moveTo(active + page);
+        break;
+      case "PageUp":
+        moveTo(active - page);
+        break;
+      case "Home":
+        moveTo(0);
+        break;
+      case "End":
+        moveTo(rows.length - 1);
+        break;
+      case "Enter":
+        if (s) open(slugOf(s.label));
+        break;
+      case " ":
+        if (s) onToggleCompare(slugOf(s.label));
+        break;
+      default:
+        return;
     }
     e.preventDefault();
   };
@@ -88,11 +123,26 @@ export function ShapeTable({ rows, cols, units, sort, onSort, bold, compare, com
       className="relative overflow-auto overscroll-contain rounded-xl border border-line bg-surface [--cs-halo:var(--surface)]"
       style={{ height }}
     >
-      <span id={hintId} className="sr-only">Arrow keys move between rows. Enter opens the shape. Space adds it to the compare tray.</span>
+      <span id={hintId} className="sr-only">
+        Arrow keys move between rows. Enter opens the shape. Space adds it to the compare tray.
+      </span>
       <div style={{ minWidth: width }}>
-        <div role="row" aria-rowindex={1} className="sticky top-0 z-20 grid border-b border-line-strong bg-surface-2" style={{ gridTemplateColumns: template }}>
-          <div role="columnheader" aria-sort={sort.key === "label" ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className="sticky left-0 z-10 flex items-end border-r border-line bg-surface-2 px-3 py-1.5">
-            <button type="button" onClick={() => onSort("label")} className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted hover:text-ink">
+        <div
+          role="row"
+          aria-rowindex={1}
+          className="sticky top-0 z-20 grid border-b border-line-strong bg-surface-2"
+          style={{ gridTemplateColumns: template }}
+        >
+          <div
+            role="columnheader"
+            aria-sort={sort.key === "label" ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+            className="sticky left-0 z-10 flex items-end border-r border-line bg-surface-2 px-3 py-1.5"
+          >
+            <button
+              type="button"
+              onClick={() => onSort("label")}
+              className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted hover:text-ink"
+            >
               Shape <span className="font-normal normal-case tracking-normal text-faint">(Manual order)</span>
               {sort.key === "label" && sort.dir === "desc" && <Icon name="up" className="size-3 text-accent" />}
             </button>
@@ -100,8 +150,18 @@ export function ShapeTable({ rows, cols, units, sort, onSort, bold, compare, com
           {cols.map((k) => {
             const on = sort.key === k;
             return (
-              <div key={k} role="columnheader" aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"} className={clsx("px-1.5 py-1.5", on && "bg-accent-soft/60")}>
-                <button type="button" onClick={() => onSort(k)} aria-label={`Sort by ${plainSymbol(PROPERTY[k]?.name ?? k)}`} className="flex w-full items-end justify-end gap-0.5 rounded hover:text-ink focus-visible:outline-2 focus-visible:outline-accent">
+              <div
+                key={k}
+                role="columnheader"
+                aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+                className={clsx("px-1.5 py-1.5", on && "bg-accent-soft/60")}
+              >
+                <button
+                  type="button"
+                  onClick={() => onSort(k)}
+                  aria-label={`Sort by ${plainSymbol(PROPERTY[k]?.name ?? k)}`}
+                  className="flex w-full items-end justify-end gap-0.5 rounded hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
+                >
                   {on && <Icon name={sort.dir === "asc" ? "up" : "down"} className="mb-0.5 size-3 text-accent" />}
                   <PropHeading k={k} units={units} />
                 </button>
@@ -147,12 +207,40 @@ export function ShapeTable({ rows, cols, units, sort, onSort, bold, compare, com
 }
 
 interface RowProps {
-  shape: Shape; slug: string; index: number; top: number; template: string; cols: readonly string[]; units: UnitSystem; sortKey: string;
-  bold: boolean; inCompare: boolean; compareDisabled: boolean; focusable: boolean;
-  onFocusRow: (i: number) => void; onToggleCompare: (slug: string) => void; onOpen: (slug: string) => void;
+  shape: Shape;
+  slug: string;
+  index: number;
+  top: number;
+  template: string;
+  cols: readonly string[];
+  units: UnitSystem;
+  sortKey: string;
+  bold: boolean;
+  inCompare: boolean;
+  compareDisabled: boolean;
+  focusable: boolean;
+  onFocusRow: (i: number) => void;
+  onToggleCompare: (slug: string) => void;
+  onOpen: (slug: string) => void;
 }
 
-const Row = memo(function Row({ shape: s, slug, index, top, template, cols, units, sortKey, bold, inCompare, compareDisabled, focusable, onFocusRow, onToggleCompare, onOpen }: RowProps) {
+const Row = memo(function Row({
+  shape: s,
+  slug,
+  index,
+  top,
+  template,
+  cols,
+  units,
+  sortKey,
+  bold,
+  inCompare,
+  compareDisabled,
+  focusable,
+  onFocusRow,
+  onToggleCompare,
+  onOpen,
+}: RowProps) {
   const label = displayLabel(s.label);
   return (
     <div
@@ -162,15 +250,28 @@ const Row = memo(function Row({ shape: s, slug, index, top, template, cols, unit
       data-row={index}
       tabIndex={focusable ? 0 : -1}
       onFocus={() => onFocusRow(index)}
-      onClick={(e) => { if (!(e.target as HTMLElement).closest("a,input,label")) onOpen(slug); }}
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest("a,input,label")) onOpen(slug);
+      }}
       className={clsx(
         "group absolute left-0 top-0 grid w-full cursor-pointer border-b border-line text-[13px] outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
         inCompare ? "bg-accent-soft/50" : "bg-surface hover:bg-surface-2",
       )}
       style={{ height: ROW_H, transform: `translateY(${top}px)`, gridTemplateColumns: template }}
     >
-      <div role="rowheader" className={clsx("sticky left-0 z-[1] flex items-center gap-2 border-r border-line px-2", inCompare ? "bg-accent-soft" : "bg-surface group-hover:bg-surface-2")}>
-        <label className="flex size-6 shrink-0 cursor-pointer items-center justify-center" title={compareDisabled ? "Compare tray is full (4 shapes)" : inCompare ? "Remove from compare" : "Add to compare"}>
+      <div
+        role="rowheader"
+        className={clsx(
+          "sticky left-0 z-[1] flex items-center gap-2 border-r border-line px-2",
+          inCompare ? "bg-accent-soft" : "bg-surface group-hover:bg-surface-2",
+        )}
+      >
+        <label
+          className="flex size-6 shrink-0 cursor-pointer items-center justify-center"
+          title={
+            compareDisabled ? "Compare tray is full (4 shapes)" : inCompare ? "Remove from compare" : "Add to compare"
+          }
+        >
           <input
             type="checkbox"
             tabIndex={-1}
@@ -185,7 +286,10 @@ const Row = memo(function Row({ shape: s, slug, index, top, template, cols, unit
         <Link
           to={`/shapes/${slug}`}
           tabIndex={-1}
-          className={clsx("truncate font-mono text-[12.5px] hover:text-accent hover:underline", bold ? "font-bold text-ink" : "text-ink")}
+          className={clsx(
+            "truncate font-mono text-[12.5px] hover:text-accent hover:underline",
+            bold ? "font-bold text-ink" : "text-ink",
+          )}
         >
           {label}
         </Link>
@@ -194,7 +298,15 @@ const Row = memo(function Row({ shape: s, slug, index, top, template, cols, unit
         const p = PROPERTY[k];
         const v = num(s, k);
         return (
-          <div key={k} role="gridcell" className={clsx("num flex items-center justify-end px-2", k === sortKey && "bg-accent-soft/30", v === undefined ? "text-faint" : k === "W" && bold ? "font-bold text-ink" : "text-ink")}>
+          <div
+            key={k}
+            role="gridcell"
+            className={clsx(
+              "num flex items-center justify-end px-2",
+              k === sortKey && "bg-accent-soft/30",
+              v === undefined ? "text-faint" : k === "W" && bold ? "font-bold text-ink" : "text-ink",
+            )}
+          >
             {p ? fmtExact(v, p.quantity, units) : "—"}
           </div>
         );

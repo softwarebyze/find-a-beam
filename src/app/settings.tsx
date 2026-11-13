@@ -16,8 +16,12 @@ interface Settings {
 const Ctx = createContext<Settings | null>(null);
 
 function usePersisted<T extends string>(key: string, initial: T): [T, (v: T) => void] {
-  const [v, setV] = useState<T>(() => (typeof localStorage !== "undefined" && (localStorage.getItem(key) as T)) || initial);
-  useEffect(() => { localStorage.setItem(key, v); }, [key, v]);
+  const [v, setV] = useState<T>(
+    () => (typeof localStorage !== "undefined" && (localStorage.getItem(key) as T)) || initial,
+  );
+  useEffect(() => {
+    localStorage.setItem(key, v);
+  }, [key, v]);
   return [v, setV];
 }
 
@@ -28,13 +32,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && mq.matches));
+    const apply = () =>
+      document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && mq.matches));
     apply();
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
   }, [theme]);
 
-  const value = useMemo(() => ({ units, method, theme, setUnits, setMethod, setTheme }), [units, method, theme, setUnits, setMethod, setTheme]);
+  const value = useMemo(
+    () => ({ units, method, theme, setUnits, setMethod, setTheme }),
+    [units, method, theme, setUnits, setMethod, setTheme],
+  );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

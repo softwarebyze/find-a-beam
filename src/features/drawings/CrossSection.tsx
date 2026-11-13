@@ -49,7 +49,8 @@ function Thumbnail({ shape, scale, className, showAxes = false }: CrossSectionPr
   const g = useMemo(() => sectionGeometry(shape), [shape]);
   const d = useMemo(() => sectionPath(g), [g]);
   const pad = Math.max(g.width, g.height) * 0.06;
-  const vw = g.width + 2 * pad, vh = g.height + 2 * pad;
+  const vw = g.width + 2 * pad,
+    vh = g.height + 2 * pad;
   const sized = scale !== undefined || /(^|\s)(size|w|h)-/.test(className ?? "");
   return (
     <svg
@@ -60,7 +61,15 @@ function Thumbnail({ shape, scale, className, showAxes = false }: CrossSectionPr
       role="img"
       aria-label={`${displayLabel(shape.label)} cross-section`}
     >
-      <path d={d} fillRule="evenodd" fill="var(--steel-fill)" stroke="var(--steel)" strokeWidth={1} strokeLinejoin="round" style={STROKE} />
+      <path
+        d={d}
+        fillRule="evenodd"
+        fill="var(--steel-fill)"
+        stroke="var(--steel)"
+        strokeWidth={1}
+        strokeLinejoin="round"
+        style={STROKE}
+      />
       {showAxes && (
         <g stroke="var(--muted)" strokeWidth={0.75} strokeDasharray="6 2 1.5 2" style={STROKE}>
           <line x1={-pad} x2={g.width + pad} y1={g.centroid.y} y2={g.centroid.y} />
@@ -74,16 +83,27 @@ function Thumbnail({ shape, scale, className, showAxes = false }: CrossSectionPr
 /** Symbol as tspans: italic sans letters, `{sub}` parts lowered; returns the dy that restores the baseline. */
 function symbolTspans(sym: string): [React.ReactNode[], number | undefined] {
   let lowered = false;
-  const nodes = sym.split(/(\{[^}]*\})/g).filter(Boolean).map((p, i) => {
-    if (p.startsWith("{")) {
-      const dy = lowered ? undefined : SUB_DY;
-      lowered = true;
-      return <tspan key={i} fontSize="0.75em" dy={dy}>{p.slice(1, -1)}</tspan>;
-    }
-    const dy = lowered ? -SUB_DY : undefined;
-    lowered = false;
-    return <tspan key={i} fontStyle="italic" dy={dy}>{p}</tspan>;
-  });
+  const nodes = sym
+    .split(/(\{[^}]*\})/g)
+    .filter(Boolean)
+    .map((p, i) => {
+      if (p.startsWith("{")) {
+        const dy = lowered ? undefined : SUB_DY;
+        lowered = true;
+        return (
+          <tspan key={i} fontSize="0.75em" dy={dy}>
+            {p.slice(1, -1)}
+          </tspan>
+        );
+      }
+      const dy = lowered ? -SUB_DY : undefined;
+      lowered = false;
+      return (
+        <tspan key={i} fontStyle="italic" dy={dy}>
+          {p}
+        </tspan>
+      );
+    });
   return [nodes, lowered ? -SUB_DY : undefined];
 }
 
@@ -113,7 +133,16 @@ function DimText({ t, d, main, paren }: { t: SceneText; d: DimSpec; main: string
             <tspan className="font-mono" dy={resetDy}>{` ${main}${paren && !stacked ? ` ${paren}` : ""}`}</tspan>
           </text>
           {stacked && (
-            <text x={t.x} y={t.y + LINE_H / 2} textAnchor={t.anchor} transform={transform} className="font-mono" {...layer}>{paren}</text>
+            <text
+              x={t.x}
+              y={t.y + LINE_H / 2}
+              textAnchor={t.anchor}
+              transform={transform}
+              className="font-mono"
+              {...layer}
+            >
+              {paren}
+            </text>
           )}
         </>
       )}
@@ -122,7 +151,8 @@ function DimText({ t, d, main, paren }: { t: SceneText; d: DimSpec; main: string
 }
 
 function arrowPath({ x, y, dx, dy }: SceneArrow): string {
-  const bx = x - dx * ARROW_LEN, by = y - dy * ARROW_LEN;
+  const bx = x - dx * ARROW_LEN,
+    by = y - dy * ARROW_LEN;
   return `M${x} ${y}L${bx - dy * ARROW_HALF} ${by + dx * ARROW_HALF}L${bx + dy * ARROW_HALF} ${by - dx * ARROW_HALF}Z`;
 }
 
@@ -143,7 +173,14 @@ function useContainerWidth(enabled: boolean) {
   return [ref, width] as const;
 }
 
-function Dimensioned({ shape, scale, className, showAxes = true, maxHeight = 420, showUnits = true }: CrossSectionProps) {
+function Dimensioned({
+  shape,
+  scale,
+  className,
+  showAxes = true,
+  maxHeight = 420,
+  showUnits = true,
+}: CrossSectionProps) {
   const { units } = useSettings();
   const [ref, availW] = useContainerWidth(scale === undefined);
   const g = useMemo(() => sectionGeometry(shape), [shape]);
@@ -185,23 +222,48 @@ function Dimensioned({ shape, scale, className, showAxes = true, maxHeight = 420
         fontSize={FONT_PX}
       >
         <title>{title}</title>
-        <path d={path} fillRule="evenodd" fill="var(--steel-fill)" stroke="var(--steel)" strokeWidth={1.25} strokeLinejoin="round" style={STROKE} />
+        <path
+          d={path}
+          fillRule="evenodd"
+          fill="var(--steel-fill)"
+          stroke="var(--steel)"
+          strokeWidth={1.25}
+          strokeLinejoin="round"
+          style={STROKE}
+        />
         <g stroke="var(--muted)" strokeWidth={0.75} strokeDasharray="12 3 2 3" fill="none">
-          {scene.lines.filter((l) => l.role === "axis").map((l, i) => (
-            <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={STROKE} />
-          ))}
+          {scene.lines
+            .filter((l) => l.role === "axis")
+            .map((l, i) => (
+              <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={STROKE} />
+            ))}
         </g>
         <g stroke="var(--dim)" fill="none">
-          {scene.lines.filter((l) => l.role !== "axis").map((l, i) => (
-            <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} strokeWidth={l.role === "ext" ? 0.6 : 0.85} opacity={l.role === "ext" ? 0.75 : 1} style={STROKE} />
-          ))}
+          {scene.lines
+            .filter((l) => l.role !== "axis")
+            .map((l, i) => (
+              <line
+                key={i}
+                x1={l.x1}
+                y1={l.y1}
+                x2={l.x2}
+                y2={l.y2}
+                strokeWidth={l.role === "ext" ? 0.6 : 0.85}
+                opacity={l.role === "ext" ? 0.75 : 1}
+                style={STROKE}
+              />
+            ))}
         </g>
         <path d={scene.arrows.map(arrowPath).join("")} fill="var(--dim)" />
         {scene.markers.map((m, i) =>
           m.kind === "cg" ? (
             <g key={i} stroke="var(--muted)" strokeWidth={0.9}>
               <circle cx={m.x} cy={m.y} r={4.5} fill={HALO_FILL} />
-              <path d={`M${m.x} ${m.y}h4.5a4.5 4.5 0 0 1-4.5 4.5zM${m.x} ${m.y}h-4.5a4.5 4.5 0 0 1 4.5-4.5z`} fill="var(--muted)" stroke="none" />
+              <path
+                d={`M${m.x} ${m.y}h4.5a4.5 4.5 0 0 1-4.5 4.5zM${m.x} ${m.y}h-4.5a4.5 4.5 0 0 1 4.5-4.5z`}
+                fill="var(--muted)"
+                stroke="none"
+              />
             </g>
           ) : (
             <circle key={i} cx={m.x} cy={m.y} r={3} stroke="var(--muted)" strokeWidth={0.9} fill={HALO_FILL} />
@@ -217,7 +279,15 @@ function Dimensioned({ shape, scale, className, showAxes = true, maxHeight = 420
             return (
               <Haloed key={i} fill="var(--muted)">
                 {(layer) => (
-                  <text x={t.x} y={t.y} textAnchor={t.anchor} fontFamily={SYMBOL_FONT} fontStyle={t.role === "axis" ? "italic" : undefined} fontSize={t.role === "marker" ? 10 : undefined} {...layer}>
+                  <text
+                    x={t.x}
+                    y={t.y}
+                    textAnchor={t.anchor}
+                    fontFamily={SYMBOL_FONT}
+                    fontStyle={t.role === "axis" ? "italic" : undefined}
+                    fontSize={t.role === "marker" ? 10 : undefined}
+                    {...layer}
+                  >
                     {t.role === "marker" ? "SC" : t.ref}
                   </text>
                 )}

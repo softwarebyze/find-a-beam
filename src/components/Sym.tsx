@@ -6,7 +6,13 @@ export function Sym({ s, className }: { s: string; className?: string }) {
   return (
     <span className={className}>
       {parts.map((p, i) =>
-        p.startsWith("{") ? <sub key={i} className="text-[0.75em] leading-none">{p.slice(1, -1)}</sub> : <Fragment key={i}>{p}</Fragment>,
+        p.startsWith("{") ? (
+          <sub key={i} className="text-[0.75em] leading-none">
+            {p.slice(1, -1)}
+          </sub>
+        ) : (
+          <Fragment key={i}>{p}</Fragment>
+        ),
       )}
     </span>
   );

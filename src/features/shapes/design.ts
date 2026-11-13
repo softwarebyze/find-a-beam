@@ -3,9 +3,23 @@
  * Every engine call is isolated so an unsupported limit state hides one row, not the page.
  */
 import {
-  available, classifyCompression, classifyFlexure, compressionStrength, flexuralStrength, ltbCurve, shearStrength, tensionStrength,
-  type CompressionClass, type CompressionResult, type DesignMethod, type FlexureClass, type FlexureResult, type LimitState,
-  type SectionClassification, type ShearResult, type TensionResult,
+  available,
+  classifyCompression,
+  classifyFlexure,
+  compressionStrength,
+  flexuralStrength,
+  ltbCurve,
+  shearStrength,
+  tensionStrength,
+  type CompressionClass,
+  type CompressionResult,
+  type DesignMethod,
+  type FlexureClass,
+  type FlexureResult,
+  type LimitState,
+  type SectionClassification,
+  type ShearResult,
+  type TensionResult,
 } from "@/aisc";
 import { preferredMaterial, type Material } from "@/data/materials";
 import { familyOf, type Shape } from "@/data/shapes";
@@ -47,13 +61,19 @@ export function designSummary(s: Shape, material: Material = defaultMaterial(s))
     flexX: attempt(() => flexuralStrength(s, material, { axis: "major", Lb: 0 })),
     flexY: attempt(() => flexuralStrength(s, material, { axis: "minor", Lb: 0 })),
     shearX: attempt(() => shearStrength(s, material, { axis: "major" })),
-    compression: COLUMN_LENGTHS.map((Lc) => ({ Lc, result: attempt(() => compressionStrength(s, material, { Lcx: Lc, Lcy: Lc })) })),
+    compression: COLUMN_LENGTHS.map((Lc) => ({
+      Lc,
+      result: attempt(() => compressionStrength(s, material, { Lcx: Lc, Lcy: Lc })),
+    })),
     tension: attempt(() => tensionStrength(s, material)),
   };
 }
 
 /** Available strength of the gross-section yielding limit state alone (§D2(a), Eq. D2-1). */
-export function tensionYielding(r: TensionResult, method: DesignMethod): { value: number; state: LimitState } | undefined {
+export function tensionYielding(
+  r: TensionResult,
+  method: DesignMethod,
+): { value: number; state: LimitState } | undefined {
   const ty = r.limitStates.find((l) => l.id === "TY");
   if (!ty || ty.phi === undefined || ty.omega === undefined) return undefined;
   return { value: available({ nominal: ty.nominal, phi: ty.phi, omega: ty.omega }, method), state: ty };
@@ -84,13 +104,21 @@ export interface MomentCurve {
 }
 
 /** Available major-axis moment vs unbraced length with Cb = 1. */
-export function momentCurve(s: Shape, material: Material, base: FlexureResult, method: DesignMethod): Outcome<MomentCurve> | undefined {
+export function momentCurve(
+  s: Shape,
+  material: Material,
+  base: FlexureResult,
+  method: DesignMethod,
+): Outcome<MomentCurve> | undefined {
   const span = ltbChartSpan(base);
   if (span === undefined) return undefined;
   return attempt(() => {
     const pts = ltbCurve(s, material, { axis: "major", Lmax: span, n: 61 });
     return {
-      points: pts.map((p) => ({ Lb: p.Lb, Mc: available({ nominal: p.Mn, phi: base.phi, omega: base.omega }, method) })),
+      points: pts.map((p) => ({
+        Lb: p.Lb,
+        Mc: available({ nominal: p.Mn, phi: base.phi, omega: base.omega }, method),
+      })),
       Lp: base.Lp!,
       Lr: base.Lr!,
       span,

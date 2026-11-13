@@ -47,12 +47,22 @@ const TYPE_IDS = new Set<string>(EXPLORER_TYPES.map((t) => t.id));
 
 export function parseExplorerType(v: string | null | undefined): ExplorerType {
   const u = (v ?? "").trim().toUpperCase();
-  if (u === "" ) return "ALL";
+  if (u === "") return "ALL";
   if (TYPE_IDS.has(u)) return u as ExplorerType;
   // Friendly aliases for deep links
   const alias: Record<string, ExplorerType> = {
-    "HSS-RECT": "HSSR", HSSRECT: "HSSR", "HSS-SQUARE": "HSSQ", HSSSQUARE: "HSSQ", HSSSQ: "HSSQ",
-    "HSS-ROUND": "HSSO", HSSROUND: "HSSO", ROUND: "HSSO", PIPES: "PIPE", ANGLE: "L", ANGLES: "L", DL: "2L",
+    "HSS-RECT": "HSSR",
+    HSSRECT: "HSSR",
+    "HSS-SQUARE": "HSSQ",
+    HSSSQUARE: "HSSQ",
+    HSSSQ: "HSSQ",
+    "HSS-ROUND": "HSSO",
+    HSSROUND: "HSSO",
+    ROUND: "HSSO",
+    PIPES: "PIPE",
+    ANGLE: "L",
+    ANGLES: "L",
+    DL: "2L",
   };
   return alias[u] ?? "ALL";
 }
@@ -84,18 +94,269 @@ export function typeInfo(t: ExplorerType): ExplorerTypeInfo {
 /** Column presets mirroring the Manual Part 1 table for each type (W is always first). */
 export const PRESETS: Record<ExplorerType, string[]> = {
   ALL: ["W", "A", "d", "bf", "tw", "tf", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J"],
-  W: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "h/tw", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J", "Cw", "rts", "ho"],
-  M: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "h/tw", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J", "Cw", "rts", "ho"],
-  S: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "h/tw", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J", "Cw", "rts", "ho"],
-  HP: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "h/tw", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J", "Cw", "rts", "ho"],
-  C: ["W", "A", "d", "bf", "tw", "tf", "b/t", "h/tw", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "x", "xp", "eo", "J", "Cw", "rts", "ho", "ro", "H"],
-  MC: ["W", "A", "d", "bf", "tw", "tf", "b/t", "h/tw", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "x", "xp", "eo", "J", "Cw", "rts", "ho", "ro", "H"],
-  L: ["W", "A", "d", "b", "t", "kdes", "b/t", "x", "y", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "Iz", "Sz", "rz", "tan(α)", "J", "Cw", "ro", "H"],
-  WT: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "D/t", "Ix", "Zx", "Sx", "rx", "y", "yp", "Iy", "Zy", "Sy", "ry", "J", "Cw", "ro", "H"],
-  MT: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "D/t", "Ix", "Zx", "Sx", "rx", "y", "yp", "Iy", "Zy", "Sy", "ry", "J", "Cw", "ro", "H"],
-  ST: ["W", "A", "d", "bf", "tw", "tf", "bf/2tf", "D/t", "Ix", "Zx", "Sx", "rx", "y", "yp", "Iy", "Zy", "Sy", "ry", "J", "Cw", "ro", "H"],
+  W: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "h/tw",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "rts",
+    "ho",
+  ],
+  M: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "h/tw",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "rts",
+    "ho",
+  ],
+  S: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "h/tw",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "rts",
+    "ho",
+  ],
+  HP: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "h/tw",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "rts",
+    "ho",
+  ],
+  C: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "b/t",
+    "h/tw",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "x",
+    "xp",
+    "eo",
+    "J",
+    "Cw",
+    "rts",
+    "ho",
+    "ro",
+    "H",
+  ],
+  MC: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "b/t",
+    "h/tw",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "x",
+    "xp",
+    "eo",
+    "J",
+    "Cw",
+    "rts",
+    "ho",
+    "ro",
+    "H",
+  ],
+  L: [
+    "W",
+    "A",
+    "d",
+    "b",
+    "t",
+    "kdes",
+    "b/t",
+    "x",
+    "y",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "Iz",
+    "Sz",
+    "rz",
+    "tan(α)",
+    "J",
+    "Cw",
+    "ro",
+    "H",
+  ],
+  WT: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "D/t",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "y",
+    "yp",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "ro",
+    "H",
+  ],
+  MT: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "D/t",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "y",
+    "yp",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "ro",
+    "H",
+  ],
+  ST: [
+    "W",
+    "A",
+    "d",
+    "bf",
+    "tw",
+    "tf",
+    "bf/2tf",
+    "D/t",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "y",
+    "yp",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "Cw",
+    "ro",
+    "H",
+  ],
   "2L": ["W", "A", "d", "b", "t", "b/t", "y", "yp", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "ro", "H"],
-  HSS: ["W", "A", "Ht", "B", "OD", "tdes", "b/tdes", "h/tdes", "D/t", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J", "C"],
+  HSS: [
+    "W",
+    "A",
+    "Ht",
+    "B",
+    "OD",
+    "tdes",
+    "b/tdes",
+    "h/tdes",
+    "D/t",
+    "Ix",
+    "Zx",
+    "Sx",
+    "rx",
+    "Iy",
+    "Zy",
+    "Sy",
+    "ry",
+    "J",
+    "C",
+  ],
   HSSR: ["W", "A", "Ht", "B", "tdes", "b/tdes", "h/tdes", "Ix", "Zx", "Sx", "rx", "Iy", "Zy", "Sy", "ry", "J", "C"],
   HSSQ: ["W", "A", "Ht", "tdes", "b/tdes", "Ix", "Zx", "Sx", "rx", "J", "C"],
   HSSO: ["W", "A", "OD", "tdes", "D/t", "Ix", "Zx", "Sx", "rx", "J", "C"],
@@ -182,7 +443,8 @@ export function sortShapes(shapes: readonly Shape[], sort: SortSpec): Shape[] {
   }
   const sign = sort.dir === "asc" ? 1 : -1;
   out.sort((a, b) => {
-    const va = num(a, sort.key), vb = num(b, sort.key);
+    const va = num(a, sort.key),
+      vb = num(b, sort.key);
     if (va === undefined && vb === undefined) return indexOf(a) - indexOf(b);
     if (va === undefined) return 1;
     if (vb === undefined) return -1;
@@ -230,9 +492,11 @@ function seriesMap(): Map<string, Shape[]> {
     for (const s of SHAPES) {
       const k = `${s.type}|${seriesKey(s)}`;
       const arr = seriesIndex.get(k);
-      if (arr) arr.push(s); else seriesIndex.set(k, [s]);
+      if (arr) arr.push(s);
+      else seriesIndex.set(k, [s]);
     }
-    for (const arr of seriesIndex.values()) arr.sort((a, b) => (num(a, "W") ?? 0) - (num(b, "W") ?? 0) || indexOf(a) - indexOf(b));
+    for (const arr of seriesIndex.values())
+      arr.sort((a, b) => (num(a, "W") ?? 0) - (num(b, "W") ?? 0) || indexOf(a) - indexOf(b));
   }
   return seriesIndex;
 }
@@ -286,7 +550,10 @@ export function emphasized(shapes: readonly Shape[], sort: SortSpec): Set<Shape>
   let lightest = Infinity;
   for (const s of withVal) {
     const w = num(s, "W")!;
-    if (w < lightest) { out.add(s); lightest = w; }
+    if (w < lightest) {
+      out.add(s);
+      lightest = w;
+    }
   }
   return out;
 }
@@ -361,7 +628,10 @@ export function nextSort(cur: SortSpec, key: string): SortSpec {
 }
 
 /** Full pipeline: type -> search -> filters -> sort. */
-export function queryShapes(all: readonly Shape[], st: Pick<ExplorerState, "type" | "q" | "filters" | "sort">): Shape[] {
+export function queryShapes(
+  all: readonly Shape[],
+  st: Pick<ExplorerState, "type" | "q" | "filters" | "sort">,
+): Shape[] {
   const terms = searchTerms(st.q);
   const rows = all.filter((s) => matchesType(s, st.type) && matchesSearch(s, terms) && matchesFilters(s, st.filters));
   return sortShapes(rows, st.sort);
@@ -394,11 +664,17 @@ export function preference(key: string): "higher" | "lower" | undefined {
 }
 
 /** Indices of best and worst value; undefined when fewer than two values or all equal. */
-export function bestWorst(values: (number | undefined)[], pref: "higher" | "lower" | undefined): { best?: number; worst?: number } {
+export function bestWorst(
+  values: (number | undefined)[],
+  pref: "higher" | "lower" | undefined,
+): { best?: number; worst?: number } {
   if (!pref) return {};
-  const present = values.map((v, i) => [v, i] as const).filter((x): x is readonly [number, number] => x[0] !== undefined);
+  const present = values
+    .map((v, i) => [v, i] as const)
+    .filter((x): x is readonly [number, number] => x[0] !== undefined);
   if (present.length < 2) return {};
-  let hi = present[0]!, lo = present[0]!;
+  let hi = present[0]!,
+    lo = present[0]!;
   for (const x of present) {
     if (x[0] > hi[0]) hi = x;
     if (x[0] < lo[0]) lo = x;
@@ -421,11 +697,14 @@ const csvCell = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` 
 
 /** CSV of the current view in the active unit system. Header row: `W (lb/ft)`, `Ix (in.^4)` … */
 export function toCSV(shapes: readonly Shape[], cols: readonly string[], units: UnitSystem): string {
-  const head = ["Shape", ...cols.map((k) => {
-    const p = PROPERTY[k];
-    const u = p ? unitLabel(p.quantity, units) : "";
-    return u ? `${k} (${u})` : k;
-  })];
+  const head = [
+    "Shape",
+    ...cols.map((k) => {
+      const p = PROPERTY[k];
+      const u = p ? unitLabel(p.quantity, units) : "";
+      return u ? `${k} (${u})` : k;
+    }),
+  ];
   const lines = [head.map(csvCell).join(",")];
   for (const s of shapes) {
     const row = [s.label];
@@ -477,7 +756,8 @@ export function toQueryString(p: URLSearchParams): string {
 export function noteText(s: Shape): string | undefined {
   if (!s.note) return undefined;
   if (s.type === "M" || s.type === "MT") return "Shape has tapered (sloped) flanges.";
-  if (s.type === "W" || s.type === "WT") return "Flange thickness greater than 2 in. Special requirements may apply per AISC 360 §A3.1c.";
+  if (s.type === "W" || s.type === "WT")
+    return "Flange thickness greater than 2 in. Special requirements may apply per AISC 360 §A3.1c.";
   return "See Manual Part 1 table notes for this shape.";
 }
 
@@ -503,8 +783,10 @@ export const EFFICIENCY: EfficiencyMetric[] = [
 
 /** Efficiency value in DISPLAY units of the active system (e.g. in.³ per lb/ft). */
 export function efficiency(s: Shape, m: EfficiencyMetric, units: UnitSystem): number | undefined {
-  const n = num(s, m.num), d = num(s, m.den);
-  const pn = PROPERTY[m.num], pd = PROPERTY[m.den];
+  const n = num(s, m.num),
+    d = num(s, m.den);
+  const pn = PROPERTY[m.num],
+    pd = PROPERTY[m.den];
   if (n === undefined || d === undefined || !d || !pn || !pd) return undefined;
   return toDisplay(n, pn.quantity, units) / toDisplay(d, pd.quantity, units);
 }
@@ -518,7 +800,8 @@ export function efficiencyUnit(m: EfficiencyMetric, units: UnitSystem): string {
 
 /** Common px-per-inch scale so every shape fits a `boxW` × `boxH` drawing box. */
 export function commonScale(shapes: readonly Shape[], boxW: number, boxH: number): number {
-  let w = 0, h = 0;
+  let w = 0,
+    h = 0;
   for (const s of shapes) {
     const e = extentOf(s);
     w = Math.max(w, e.w);
